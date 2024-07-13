@@ -2,12 +2,14 @@ package com.wl2c.elswhereproductservice.domain.product.controller;
 
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "상품", description = "상품 관련 api")
 @RestController
 @RequestMapping("/product")
 @RequiredArgsConstructor
