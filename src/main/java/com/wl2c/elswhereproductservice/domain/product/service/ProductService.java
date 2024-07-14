@@ -46,6 +46,25 @@ public class ProductService {
         return products.map(SummarizedProductDto::new);
     }
 
+    public Page<SummarizedProductDto> listByEndSale(String type, Pageable pageable) {
+        Sort sort = switch (type) {
+            case "latest" -> Sort.by(Sort.Order.desc("subscriptionStartDate"), Sort.Order.desc("lastModifiedAt"));
+            case "knock-in" -> Sort.by(Sort.Order.asc("knockIn").nullsLast(), Sort.Order.desc("lastModifiedAt"));
+            case "profit" -> Sort.by(Sort.Order.desc("yieldIfConditionsMet"), Sort.Order.desc("lastModifiedAt"));
+            default -> null;
+        };
+
+        if (sort == null) {
+            throw new WrongProductSortTypeException();
+        }
+
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
+        Page<Product> products = productRepository.listByEndSale(sortedPageable);
+
+        return products.map(SummarizedProductDto::new);
+    }
+
+
     public ResponseSingleProductDto findOne(Long id) {
         Product product = productRepository.findOne(id).orElseThrow(ProductNotFoundException::new);
         List<TickerSymbol> tickerSymbolList = tickerSymbolRepository.findTickerSymbolList(id);
