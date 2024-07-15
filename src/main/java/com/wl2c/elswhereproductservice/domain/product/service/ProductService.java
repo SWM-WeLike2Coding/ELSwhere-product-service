@@ -1,8 +1,10 @@
 package com.wl2c.elswhereproductservice.domain.product.service;
 
+import com.wl2c.elswhereproductservice.domain.product.exception.NotOnSaleProductException;
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.WrongProductSortTypeException;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.TickerSymbol;
@@ -16,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -73,5 +77,27 @@ public class ProductService {
                 .collect(Collectors.toMap(TickerSymbol::getEquityName, TickerSymbol::getTickerSymbol));
 
         return new ResponseSingleProductDto(product, equityTickerSymbols);
+    }
+
+    public Map<String, List<ResponseProductComparisonTargetDto>> findComparisonTargets(Long id) {
+        Map<String, List<ResponseProductComparisonTargetDto>> result = new HashMap<>();
+
+        Product product = productRepository.isItProductOnSale(id).orElseThrow(NotOnSaleProductException::new);
+        List<TickerSymbol> tickerSymbolEntityList = tickerSymbolRepository.findTickerSymbolList(id);
+        List<String> tickerSymbolList = tickerSymbolEntityList.stream()
+                .map(TickerSymbol::getTickerSymbol)
+                .toList();
+        List<ResponseProductComparisonTargetDto> target = new ArrayList<>();
+        target.add(new ResponseProductComparisonTargetDto(product));
+
+        List<Product> productComparisonResults = productRepository.findComparisonResults(id, product.getEquityCount(), tickerSymbolList);
+        List<ResponseProductComparisonTargetDto> comparisonResults = productComparisonResults.stream()
+                                        .map(ResponseProductComparisonTargetDto::new)
+                                        .toList();
+
+        result.put("target", target);
+        result.put("results", comparisonResults);
+
+        return result;
     }
 }
