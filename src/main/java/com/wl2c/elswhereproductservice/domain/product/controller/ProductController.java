@@ -1,6 +1,7 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
 import com.wl2c.elswhereproductservice.global.model.dto.ResponsePage;
@@ -10,6 +11,9 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 @Tag(name = "상품", description = "상품 관련 api")
 @RestController
@@ -70,6 +74,17 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseSingleProductDto findOne(@PathVariable Long id) {
         return productService.findOne(id);
+    }
+
+    /**
+     * 특정 상품과 같은 기초자산의 상품들 리스트
+     *
+     * @param id 비교할 대상의 상품 id
+     * @return map 형태의 비교할 대상(target)의 정보와 비교된 상품 리스트들(results) 반환
+     */
+    @GetMapping("/similar/{id}")
+    public Map<String, List<ResponseProductComparisonTargetDto>> findComparisonTargets(@PathVariable Long id) {
+        return productService.findComparisonTargets(id);
     }
 
 }
