@@ -63,7 +63,7 @@ public class ProductService {
         }
 
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
-        Page<Product> products = productRepository.listByEndSale(sortedPageable);
+        Page<Product> products = productRepository.listByEndSale(type, sortedPageable);
 
         return products.map(SummarizedProductDto::new);
     }
