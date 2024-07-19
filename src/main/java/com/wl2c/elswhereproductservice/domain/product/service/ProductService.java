@@ -4,11 +4,13 @@ import com.wl2c.elswhereproductservice.domain.product.exception.NotOnSaleProduct
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.WrongProductSortTypeException;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.TickerSymbol;
 import com.wl2c.elswhereproductservice.domain.product.repository.ProductRepository;
+import com.wl2c.elswhereproductservice.domain.product.repository.ProductSearchRepository;
 import com.wl2c.elswhereproductservice.domain.product.repository.TickerSymbolRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +33,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final TickerSymbolRepository tickerSymbolRepository;
+    private final ProductSearchRepository productSearchRepository;
 
     public Page<SummarizedProductDto> listByOnSale(String type, Pageable pageable) {
         Sort sort = switch (type) {
@@ -99,5 +102,10 @@ public class ProductService {
         result.put("results", comparisonResults);
 
         return result;
+    }
+
+    public Page<SummarizedProductDto> searchProduct(RequestProductSearchDto requestProductSearchDto,
+                                                    Pageable pageable) {
+        return productSearchRepository.search(requestProductSearchDto, pageable);
     }
 }
