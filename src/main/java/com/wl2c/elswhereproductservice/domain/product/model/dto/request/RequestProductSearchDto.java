@@ -2,6 +2,7 @@ package com.wl2c.elswhereproductservice.domain.product.model.dto.request;
 
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -10,7 +11,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @Getter
-@RequiredArgsConstructor
+@Builder
 public class RequestProductSearchDto {
 
     @Schema(description = "기초자산 수", example = "3")

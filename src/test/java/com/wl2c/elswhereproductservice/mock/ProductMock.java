@@ -9,8 +9,7 @@ import java.time.LocalDate;
 
 public class ProductMock {
 
-    public static Product create(Long productId,
-                                 String publisher,
+    public static Product create(String publisher,
                                  String name,
                                  String equities,
                                  int equityCount,
