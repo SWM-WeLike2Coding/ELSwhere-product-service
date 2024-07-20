@@ -28,7 +28,6 @@ public class ProductRepositoryTest {
         productRepository.deleteAll();
 
         Product product1 = ProductMock.create(
-                3L,
                 "AA증권",
                 "1호",
                 "삼성전자 / S&P500 / KOSPI200",
@@ -44,7 +43,6 @@ public class ProductRepositoryTest {
                 ProductState.ACTIVE);
 
         Product product2 = ProductMock.create(
-                2L,
                 "BB증권",
                 "2호",
                 "Tesla / HSCEI / NVIDIA",
