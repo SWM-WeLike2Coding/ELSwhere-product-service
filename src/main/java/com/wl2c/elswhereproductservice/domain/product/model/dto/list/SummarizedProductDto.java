@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.model.dto.list;
 
+import com.querydsl.core.annotations.QueryProjection;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -33,6 +34,7 @@ public class SummarizedProductDto {
     @Schema(description = "청약 마감일", example = "2024-06-21")
     private final LocalDate subscriptionEndDate;
 
+    @QueryProjection
     public SummarizedProductDto(Product product) {
         this.id = product.getId();
         this.publisher = product.getPublisher();
