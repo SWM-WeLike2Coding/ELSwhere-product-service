@@ -11,6 +11,7 @@ import com.wl2c.elswhereproductservice.domain.product.model.dto.list.QSummarized
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.QProduct;
+import com.wl2c.elswhereproductservice.domain.product.model.entity.QTickerSymbol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,8 @@ import java.util.stream.Collectors;
 import static org.springframework.util.StringUtils.hasText;
 import static com.wl2c.elswhereproductservice.domain.product.model.entity.QProduct.product;
 import static com.wl2c.elswhereproductservice.domain.product.model.entity.QEarlyRepaymentEvaluationDates.earlyRepaymentEvaluationDates;
+import static com.wl2c.elswhereproductservice.domain.product.model.entity.QTickerSymbol.tickerSymbol1;
+import static com.wl2c.elswhereproductservice.domain.product.model.entity.QProductTickerSymbol.productTickerSymbol;
 
 @Repository
 @RequiredArgsConstructor
@@ -39,6 +42,7 @@ public class ProductSearchRepository {
                 .select(new QSummarizedProductDto(product))
                 .from(product)
                 .where(
+                        equityNamesIn(requestDto.getEquityNames()),
                         equityCountEq(requestDto.getEquityCount()),
                         publisherEq(requestDto.getPublisher()),
                         knockInLoe(requestDto.getMaxKnockIn()),
@@ -60,6 +64,7 @@ public class ProductSearchRepository {
                 .select(product.count())
                 .from(product)
                 .where(
+                        equityNamesIn(requestDto.getEquityNames()),
                         equityCountEq(requestDto.getEquityCount()),
                         publisherEq(requestDto.getPublisher()),
                         knockInLoe(requestDto.getMaxKnockIn()),
@@ -74,6 +79,31 @@ public class ProductSearchRepository {
                 );
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    private BooleanExpression equityNamesIn(List<String> equityNames) {
+        if (equityNames != null) {
+            List<String> tickerSymbolList = new ArrayList<>();
+
+            for (String equityName : equityNames) {
+                tickerSymbolList.add(queryFactory
+                        .select(tickerSymbol1.tickerSymbol)
+                        .from(tickerSymbol1)
+                        .where(tickerSymbol1.equityName.eq(equityName))
+                        .fetchOne());
+            }
+
+            List<Long> result = queryFactory
+                    .select(productTickerSymbol.product.id)
+                    .from(productTickerSymbol)
+                    .where(productTickerSymbol.tickerSymbol.tickerSymbol.in(tickerSymbolList))
+                    .groupBy(productTickerSymbol.product.id)
+                    .having(productTickerSymbol.tickerSymbol.tickerSymbol.count().eq((long) tickerSymbolList.size()))
+                    .fetch();
+
+            return product.id.in(result);
+        }
+        return null;
     }
 
     // 기초자산 개수
