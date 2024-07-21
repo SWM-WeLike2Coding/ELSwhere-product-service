@@ -1,6 +1,8 @@
 package com.wl2c.elswhereproductservice.domain.product.repository;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
@@ -8,6 +10,7 @@ import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.QSummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
+import com.wl2c.elswhereproductservice.domain.product.model.entity.QProduct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -16,12 +19,13 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.time.Period;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.StringUtils.hasText;
 import static com.wl2c.elswhereproductservice.domain.product.model.entity.QProduct.product;
+import static com.wl2c.elswhereproductservice.domain.product.model.entity.QEarlyRepaymentEvaluationDates.earlyRepaymentEvaluationDates;
 
 @Repository
 @RequiredArgsConstructor
@@ -42,6 +46,7 @@ public class ProductSearchRepository {
                         initialRedemptionBarrierEq(requestDto.getInitialRedemptionBarrier()),
                         maturityRedemptionBarrierEq(requestDto.getMaturityRedemptionBarrier()),
                         subscriptionPeriodEq(requestDto.getSubscriptionPeriod()),
+                        product.id.in(redemptionIntervalEq(requestDto.getRedemptionInterval())),
                         typeEq(requestDto.getType()),
                         periodBetween(requestDto.getSubscriptionStartDate(), requestDto.getSubscriptionEndDate()),
                         product.productState.eq(ProductState.ACTIVE)
@@ -62,6 +67,7 @@ public class ProductSearchRepository {
                         initialRedemptionBarrierEq(requestDto.getInitialRedemptionBarrier()),
                         maturityRedemptionBarrierEq(requestDto.getMaturityRedemptionBarrier()),
                         subscriptionPeriodEq(requestDto.getSubscriptionPeriod()),
+                        product.id.in(redemptionIntervalEq(requestDto.getRedemptionInterval())),
                         typeEq(requestDto.getType()),
                         periodBetween(requestDto.getSubscriptionStartDate(), requestDto.getSubscriptionEndDate()),
                         product.productState.eq(ProductState.ACTIVE)
@@ -168,7 +174,50 @@ public class ProductSearchRepository {
         return null;
     }
 
-    // TODO: 상환일 간격
+    private List<Long> redemptionIntervalEq(Integer redemptionInterval) {
+        List<Tuple> results = queryFactory
+                .select(earlyRepaymentEvaluationDates.product.id, earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate)
+                .from(earlyRepaymentEvaluationDates)
+                .groupBy(earlyRepaymentEvaluationDates.product.id, earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate)
+                .orderBy(earlyRepaymentEvaluationDates.product.id.asc(), earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate.asc())
+                .fetch();
+
+        Map<Long, List<LocalDate>> productDatesMap = new HashMap<>();
+        List<Long> matchingProductIds = new ArrayList<>();
+
+        for (Tuple tuple : results) {
+            Long productId = tuple.get(0, Long.class);
+            LocalDate date = tuple.get(1, LocalDate.class);
+
+            if (productDatesMap.containsKey(productId) && productDatesMap.get(productId).size() == 2) {
+                continue;
+            }
+
+            productDatesMap.computeIfAbsent(productId, k -> new ArrayList<>()).add(date);
+        }
+
+        for (Map.Entry<Long, List<LocalDate>> entry : productDatesMap.entrySet()) {
+            Long productId = entry.getKey();
+            List<LocalDate> dates = entry.getValue();
+
+            if (dates.size() == 2) {
+                LocalDate firstDate = dates.get(0);
+                LocalDate secondDate = dates.get(1);
+
+                Period period = Period.between(firstDate, secondDate);
+                int monthsDifference = period.getYears() * 12 + period.getMonths();
+                if (period.getDays() >= 20) {
+                    monthsDifference += 1;
+                }
+
+                if (monthsDifference == redemptionInterval) {
+                    matchingProductIds.add(productId);
+                }
+            }
+        }
+
+        return matchingProductIds;
+    }
 
     // TODO: 기초자산 유형
 

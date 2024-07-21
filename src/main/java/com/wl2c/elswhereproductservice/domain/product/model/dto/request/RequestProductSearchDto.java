@@ -35,6 +35,9 @@ public class RequestProductSearchDto {
     @Schema(description = "상품 가입 기간", example = "3")
     private final Integer subscriptionPeriod;
 
+    @Schema(description = "상환일 간격", example = "6")
+    private final Integer redemptionInterval;
+
     @Schema(description = "상품 유형", example = "STEP_DOWN")
     private final ProductType type;
 
