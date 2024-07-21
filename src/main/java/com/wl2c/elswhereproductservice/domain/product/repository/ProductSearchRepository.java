@@ -46,7 +46,7 @@ public class ProductSearchRepository {
                         initialRedemptionBarrierEq(requestDto.getInitialRedemptionBarrier()),
                         maturityRedemptionBarrierEq(requestDto.getMaturityRedemptionBarrier()),
                         subscriptionPeriodEq(requestDto.getSubscriptionPeriod()),
-                        product.id.in(redemptionIntervalEq(requestDto.getRedemptionInterval())),
+                        redemptionIntervalEq(requestDto.getRedemptionInterval()),
                         typeEq(requestDto.getType()),
                         periodBetween(requestDto.getSubscriptionStartDate(), requestDto.getSubscriptionEndDate()),
                         product.productState.eq(ProductState.ACTIVE)
@@ -67,7 +67,7 @@ public class ProductSearchRepository {
                         initialRedemptionBarrierEq(requestDto.getInitialRedemptionBarrier()),
                         maturityRedemptionBarrierEq(requestDto.getMaturityRedemptionBarrier()),
                         subscriptionPeriodEq(requestDto.getSubscriptionPeriod()),
-                        product.id.in(redemptionIntervalEq(requestDto.getRedemptionInterval())),
+                        redemptionIntervalEq(requestDto.getRedemptionInterval()),
                         typeEq(requestDto.getType()),
                         periodBetween(requestDto.getSubscriptionStartDate(), requestDto.getSubscriptionEndDate()),
                         product.productState.eq(ProductState.ACTIVE)
@@ -75,8 +75,6 @@ public class ProductSearchRepository {
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
-
-    // TODO: 기초자산 명
 
     // 기초자산 개수
     private BooleanExpression equityCountEq(Integer equityCount) {
@@ -174,7 +172,8 @@ public class ProductSearchRepository {
         return null;
     }
 
-    private List<Long> redemptionIntervalEq(Integer redemptionInterval) {
+private BooleanExpression redemptionIntervalEq(Integer redemptionInterval) {
+    if (redemptionInterval != null) {
         List<Tuple> results = queryFactory
                 .select(earlyRepaymentEvaluationDates.product.id, earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate)
                 .from(earlyRepaymentEvaluationDates)
@@ -215,9 +214,12 @@ public class ProductSearchRepository {
                 }
             }
         }
-
-        return matchingProductIds;
+        return product.id.in(matchingProductIds);
     }
+    return null;
+}
+
+
 
     // TODO: 기초자산 유형
 
