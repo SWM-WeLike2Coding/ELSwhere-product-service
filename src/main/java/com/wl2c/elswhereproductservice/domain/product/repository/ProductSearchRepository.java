@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.repository;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
 import com.querydsl.jpa.JPAExpressions;
@@ -7,11 +8,11 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
+import com.wl2c.elswhereproductservice.domain.product.model.UnderlyingAssetType;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.QSummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
-import com.wl2c.elswhereproductservice.domain.product.model.entity.QProduct;
-import com.wl2c.elswhereproductservice.domain.product.model.entity.QTickerSymbol;
+import com.wl2c.elswhereproductservice.domain.product.model.entity.QProductTickerSymbol;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,7 +23,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.springframework.util.StringUtils.hasText;
 import static com.wl2c.elswhereproductservice.domain.product.model.entity.QProduct.product;
@@ -51,6 +51,7 @@ public class ProductSearchRepository {
                         maturityRedemptionBarrierEq(requestDto.getMaturityRedemptionBarrier()),
                         subscriptionPeriodEq(requestDto.getSubscriptionPeriod()),
                         redemptionIntervalEq(requestDto.getRedemptionInterval()),
+                        equityTypeEq(requestDto.getEquityType()),
                         typeEq(requestDto.getType()),
                         periodBetween(requestDto.getSubscriptionStartDate(), requestDto.getSubscriptionEndDate()),
                         product.productState.eq(ProductState.ACTIVE)
@@ -73,6 +74,7 @@ public class ProductSearchRepository {
                         maturityRedemptionBarrierEq(requestDto.getMaturityRedemptionBarrier()),
                         subscriptionPeriodEq(requestDto.getSubscriptionPeriod()),
                         redemptionIntervalEq(requestDto.getRedemptionInterval()),
+                        equityTypeEq(requestDto.getEquityType()),
                         typeEq(requestDto.getType()),
                         periodBetween(requestDto.getSubscriptionStartDate(), requestDto.getSubscriptionEndDate()),
                         product.productState.eq(ProductState.ACTIVE)
@@ -202,56 +204,100 @@ public class ProductSearchRepository {
         return null;
     }
 
-private BooleanExpression redemptionIntervalEq(Integer redemptionInterval) {
-    if (redemptionInterval != null) {
-        List<Tuple> results = queryFactory
-                .select(earlyRepaymentEvaluationDates.product.id, earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate)
-                .from(earlyRepaymentEvaluationDates)
-                .groupBy(earlyRepaymentEvaluationDates.product.id, earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate)
-                .orderBy(earlyRepaymentEvaluationDates.product.id.asc(), earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate.asc())
-                .fetch();
+    private BooleanExpression redemptionIntervalEq(Integer redemptionInterval) {
+        if (redemptionInterval != null) {
+            List<Tuple> results = queryFactory
+                    .select(earlyRepaymentEvaluationDates.product.id, earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate)
+                    .from(earlyRepaymentEvaluationDates)
+                    .groupBy(earlyRepaymentEvaluationDates.product.id, earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate)
+                    .orderBy(earlyRepaymentEvaluationDates.product.id.asc(), earlyRepaymentEvaluationDates.earlyRepaymentEvaluationDate.asc())
+                    .fetch();
 
-        Map<Long, List<LocalDate>> productDatesMap = new HashMap<>();
-        List<Long> matchingProductIds = new ArrayList<>();
+            Map<Long, List<LocalDate>> productDatesMap = new HashMap<>();
+            List<Long> matchingProductIds = new ArrayList<>();
 
-        for (Tuple tuple : results) {
-            Long productId = tuple.get(0, Long.class);
-            LocalDate date = tuple.get(1, LocalDate.class);
+            for (Tuple tuple : results) {
+                Long productId = tuple.get(0, Long.class);
+                LocalDate date = tuple.get(1, LocalDate.class);
 
-            if (productDatesMap.containsKey(productId) && productDatesMap.get(productId).size() == 2) {
-                continue;
-            }
-
-            productDatesMap.computeIfAbsent(productId, k -> new ArrayList<>()).add(date);
-        }
-
-        for (Map.Entry<Long, List<LocalDate>> entry : productDatesMap.entrySet()) {
-            Long productId = entry.getKey();
-            List<LocalDate> dates = entry.getValue();
-
-            if (dates.size() == 2) {
-                LocalDate firstDate = dates.get(0);
-                LocalDate secondDate = dates.get(1);
-
-                Period period = Period.between(firstDate, secondDate);
-                int monthsDifference = period.getYears() * 12 + period.getMonths();
-                if (period.getDays() >= 20) {
-                    monthsDifference += 1;
+                if (productDatesMap.containsKey(productId) && productDatesMap.get(productId).size() == 2) {
+                    continue;
                 }
 
-                if (monthsDifference == redemptionInterval) {
-                    matchingProductIds.add(productId);
+                productDatesMap.computeIfAbsent(productId, k -> new ArrayList<>()).add(date);
+            }
+
+            for (Map.Entry<Long, List<LocalDate>> entry : productDatesMap.entrySet()) {
+                Long productId = entry.getKey();
+                List<LocalDate> dates = entry.getValue();
+
+                if (dates.size() == 2) {
+                    LocalDate firstDate = dates.get(0);
+                    LocalDate secondDate = dates.get(1);
+
+                    Period period = Period.between(firstDate, secondDate);
+                    int monthsDifference = period.getYears() * 12 + period.getMonths();
+                    if (period.getDays() >= 20) {
+                        monthsDifference += 1;
+                    }
+
+                    if (monthsDifference == redemptionInterval) {
+                        matchingProductIds.add(productId);
+                    }
                 }
             }
+            return product.id.in(matchingProductIds);
         }
-        return product.id.in(matchingProductIds);
+        return null;
     }
-    return null;
-}
 
+    private BooleanExpression equityTypeEq(UnderlyingAssetType type) {
+        List<Long> result = new ArrayList<>();
 
+        if (type != null) {
+            if (type == UnderlyingAssetType.INDEX || type == UnderlyingAssetType.STOCK) {
+                List<Tuple> tmp = queryFactory
+                        .select(productTickerSymbol.product.id, productTickerSymbol.product.id.count())
+                        .from(productTickerSymbol)
+                        .join(productTickerSymbol.tickerSymbol, tickerSymbol1)
+                        .where(productTickerSymbol.tickerSymbol.underlyingAssetType.eq(type))
+                        .groupBy(productTickerSymbol.product.id)
+                        .fetch();
 
-    // TODO: 기초자산 유형
+                BooleanBuilder predicate = new BooleanBuilder();
+                for (Tuple tuple : tmp) {
+                    Long productId = tuple.get(productTickerSymbol.product.id);
+                    Long count = tuple.get(productTickerSymbol.product.id.count());
+
+                    predicate.or(
+                            product.id.eq(productId).and(product.equityCount.eq(count.intValue()))
+                    );
+                }
+
+                result = queryFactory
+                        .select(product.id)
+                        .from(product)
+                        .where(predicate)
+                        .groupBy(product.id)
+                        .fetch();
+                return product.id.in(result);
+
+            } else if (type.equals(UnderlyingAssetType.MIX)) {
+                result = queryFactory
+                        .select(productTickerSymbol.product.id)
+                        .from(productTickerSymbol)
+                        .join(productTickerSymbol.tickerSymbol, tickerSymbol1)
+                        .where(productTickerSymbol.tickerSymbol.underlyingAssetType.in(UnderlyingAssetType.STOCK, UnderlyingAssetType.INDEX))
+                        .groupBy(productTickerSymbol.product.id)
+                        .having(
+                                productTickerSymbol.tickerSymbol.underlyingAssetType.countDistinct().eq(2L)
+                        )
+                        .fetch();
+            }
+            return product.id.in(result);
+        }
+        return null;
+    }
 
     // 상품 유형
     private BooleanExpression typeEq(ProductType type) {

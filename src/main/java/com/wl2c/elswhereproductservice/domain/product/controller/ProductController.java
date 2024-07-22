@@ -90,11 +90,12 @@ public class ProductController {
     }
 
     /**
-     * 원하는 조건에 대한 상품 검색 (기초자산명, 상환일 간격, 종목 유형은 추가 예정)
+     * 원하는 조건에 대한 상품 검색
      * <p>
      *     <br/>
      *     아래 타입에 맞춰서 기입해주세요.
      *
+     *     equityType(기초자산 유형) : 주가지수=INDEX, 종목=STOCK, 혼합=MIX
      *     type(상품 종류) : 스텝 다운=STEP_DOWN, 리자드 스텝 다운=LIZARD, 월지급식=MONTHLY_PAYMENT, 기타=ETC
      * </p>
      *
