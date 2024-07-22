@@ -1,6 +1,7 @@
 package com.wl2c.elswhereproductservice.domain.product.model.dto.request;
 
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
+import com.wl2c.elswhereproductservice.domain.product.model.UnderlyingAssetType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,6 +14,9 @@ import java.util.List;
 @Getter
 @Builder
 public class RequestProductSearchDto {
+
+    @Schema(description = "기초자산 명", example = "['S&P500', 'Tesla']")
+    private final List<String> equityNames;
 
     @Schema(description = "기초자산 수", example = "3")
     private final Integer equityCount;
@@ -34,6 +38,12 @@ public class RequestProductSearchDto {
 
     @Schema(description = "상품 가입 기간", example = "3")
     private final Integer subscriptionPeriod;
+
+    @Schema(description = "상환일 간격", example = "6")
+    private final Integer redemptionInterval;
+
+    @Schema(description = "기초자산 유형", example = "INDEX")
+    private final UnderlyingAssetType equityType;
 
     @Schema(description = "상품 유형", example = "STEP_DOWN")
     private final ProductType type;
