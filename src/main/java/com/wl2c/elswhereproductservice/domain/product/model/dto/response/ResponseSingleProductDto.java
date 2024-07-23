@@ -17,7 +17,7 @@ public class ResponseSingleProductDto {
     private final Long id;
 
     @Schema(description = "발행 회사", example = "oo투자증권")
-    private final String publisher;
+    private final String issuer;
 
     @Schema(description = "상품명", example = "oo투자증권 99999")
     private final String name;
@@ -81,7 +81,7 @@ public class ResponseSingleProductDto {
 
     public ResponseSingleProductDto(Product product, Map<String, String> equityTickerSymbols) {
         this.id = product.getId();
-        this.publisher = product.getPublisher();
+        this.issuer = product.getIssuer();
         this.name = product.getName();
         this.equities = product.getEquities();
         this.equityCount = product.getEquityCount();

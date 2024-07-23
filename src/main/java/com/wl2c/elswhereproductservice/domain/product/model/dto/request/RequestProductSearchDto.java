@@ -22,7 +22,7 @@ public class RequestProductSearchDto {
     private final Integer equityCount;
 
     @Schema(description = "발행 회사", example = "oo투자증권")
-    private final String publisher;
+    private final String issuer;
 
     @Schema(description = "최대 KI(낙인배리어)", example = "45, 낙인 값이 없을 시 null")
     private final Integer maxKnockIn;

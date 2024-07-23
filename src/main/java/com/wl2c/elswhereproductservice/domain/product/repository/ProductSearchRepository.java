@@ -44,7 +44,7 @@ public class ProductSearchRepository {
                 .where(
                         equityNamesIn(requestDto.getEquityNames()),
                         equityCountEq(requestDto.getEquityCount()),
-                        publisherEq(requestDto.getPublisher()),
+                        issuerEq(requestDto.getIssuer()),
                         knockInLoe(requestDto.getMaxKnockIn()),
                         yieldIfConditionsMetGoe(requestDto.getMinYieldIfConditionsMet()),
                         initialRedemptionBarrierEq(requestDto.getInitialRedemptionBarrier()),
@@ -67,7 +67,7 @@ public class ProductSearchRepository {
                 .where(
                         equityNamesIn(requestDto.getEquityNames()),
                         equityCountEq(requestDto.getEquityCount()),
-                        publisherEq(requestDto.getPublisher()),
+                        issuerEq(requestDto.getIssuer()),
                         knockInLoe(requestDto.getMaxKnockIn()),
                         yieldIfConditionsMetGoe(requestDto.getMinYieldIfConditionsMet()),
                         initialRedemptionBarrierEq(requestDto.getInitialRedemptionBarrier()),
@@ -114,8 +114,8 @@ public class ProductSearchRepository {
     }
 
     // 발행회사
-    private BooleanExpression publisherEq(String publisher) {
-        return hasText(publisher) ? product.publisher.eq(publisher) : null;
+    private BooleanExpression issuerEq(String issuer) {
+        return hasText(issuer) ? product.issuer.eq(issuer) : null;
     }
 
     // 최대 KI
