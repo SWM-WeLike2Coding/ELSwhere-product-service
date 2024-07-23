@@ -13,4 +13,9 @@ public interface TickerSymbolRepository extends JpaRepository<TickerSymbol, Long
             "on ts.id = pts.tickerSymbol.id " +
             "where pts.product.id = :productId and pts.product.productState = 'ACTIVE' ")
     List<TickerSymbol> findTickerSymbolList(@Param("productId") Long productId);
+
+    @Override
+    @Query("select ts from TickerSymbol ts " +
+            "where ts.tickerSymbol <> 'NEED_TO_CHECK' ")
+    List<TickerSymbol> findAll();
 }
