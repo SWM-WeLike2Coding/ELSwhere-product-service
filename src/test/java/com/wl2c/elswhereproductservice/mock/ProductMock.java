@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 public class ProductMock {
 
-    public static Product create(String publisher,
+    public static Product create(String issuer,
                                  String name,
                                  String equities,
                                  int equityCount,
@@ -23,7 +23,7 @@ public class ProductMock {
                                  ProductType productType,
                                  ProductState productState) {
         return Product.builder()
-                .publisher(publisher)
+                .issuer(issuer)
                 .name(name)
                 .equities(equities)
                 .equityCount(equityCount)

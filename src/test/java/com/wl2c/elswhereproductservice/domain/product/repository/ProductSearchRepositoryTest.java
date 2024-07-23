@@ -74,7 +74,7 @@ public class ProductSearchRepositoryTest {
     void searchPublisher() {
         // given
         RequestProductSearchDto searchDto = RequestProductSearchDto.builder()
-                .publisher("AA증권")
+                .issuer("AA증권")
                 .build();
 
         // when
