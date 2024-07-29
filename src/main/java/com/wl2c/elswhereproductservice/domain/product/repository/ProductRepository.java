@@ -14,7 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("select p from Product p " +
             "where p.productState = 'ACTIVE' and p.subscriptionEndDate >= CURRENT_DATE " +
-            "order by case when :sortType = 'knock-in' and p.knockIn is null then 1 else 0 end ")
+            "order by case when :sortType = 'knock-in' and p.knockIn is null and p.productState = 'ACTIVE' then 1 else 0 end ")
     Page<Product> listByOnSale(@Param("sortType") String sortType, Pageable pageable);
 
     @Query("select p from Product p where p.productState = 'ACTIVE' and p.id = :id and p.subscriptionEndDate >= CURRENT_DATE ")
@@ -22,7 +22,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("select p from Product p " +
             "where p.productState = 'ACTIVE' and p.subscriptionEndDate < CURRENT_DATE " +
-            "order by case when :sortType = 'knock-in' and p.knockIn is null then 1 else 0 end ")
+            "order by case when :sortType = 'knock-in' and p.knockIn is null and p.productState = 'ACTIVE' then 1 else 0 end ")
     Page<Product> listByEndSale(@Param("sortType") String sortType, Pageable pageable);
 
     @Query("select p from Product p where p.productState = 'ACTIVE' and p.id = :id ")
