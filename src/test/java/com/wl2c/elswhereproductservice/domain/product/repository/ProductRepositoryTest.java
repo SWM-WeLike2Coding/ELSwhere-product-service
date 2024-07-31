@@ -13,8 +13,11 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
@@ -24,11 +27,13 @@ public class ProductRepositoryTest {
     @Autowired
     private ProductRepository productRepository;
 
+    Product product1, product2;
+
     @BeforeEach
     void before() {
         productRepository.deleteAll();
 
-        Product product1 = ProductMock.create(
+        product1 = ProductMock.create(
                 "AA증권",
                 "1호",
                 "삼성전자 / S&P500 / KOSPI200",
@@ -45,7 +50,7 @@ public class ProductRepositoryTest {
                 ProductType.STEP_DOWN,
                 ProductState.ACTIVE);
 
-        Product product2 = ProductMock.create(
+        product2 = ProductMock.create(
                 "BB증권",
                 "2호",
                 "Tesla / HSCEI / NVIDIA",
@@ -87,4 +92,18 @@ public class ProductRepositoryTest {
         assertThat(result.getTotalElements()).isEqualTo(1);
         assertThat(result.getContent().stream().anyMatch(product -> product.getName().equals("1호"))).isTrue();
     }
+
+    @Test
+    @DisplayName("상품 id 리스트에 해당하는 상품 리스트를 잘 가져오는지 확인")
+    void listByIds() {
+        // given & when
+        List<Long> list = Arrays.asList(product1.getId(), product2.getId());
+        List<Product> productList = productRepository.listByIds(list);
+
+        // then
+        assertThat(productList.size()).isEqualTo(2);
+        assertThat(productList.get(0).getIssuer()).isEqualTo("AA증권");
+        assertThat(productList.get(1).getIssuer()).isEqualTo("BB증권");
+    }
+
 }
