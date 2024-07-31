@@ -71,6 +71,13 @@ public class ProductService {
         return products.map(SummarizedProductDto::new);
     }
 
+    public List<SummarizedProductDto> listByProductIds(List<Long> productIdList) {
+        List<Product> productList = productRepository.listByIds(productIdList);
+
+        return productList.stream()
+                .map(SummarizedProductDto::new)
+                .collect(Collectors.toList());
+    }
 
     public ResponseSingleProductDto findOne(Long id) {
         Product product = productRepository.findOne(id).orElseThrow(ProductNotFoundException::new);
