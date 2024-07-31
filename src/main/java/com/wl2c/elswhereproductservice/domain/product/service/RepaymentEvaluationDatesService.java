@@ -3,8 +3,10 @@ package com.wl2c.elswhereproductservice.domain.product.service;
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductEarlyRepaymentEvaluationDateFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductMaturityEvaluationDateNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseMaturityRepaymentEvaluationDateDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseNextRepaymentEvaluationDateDto;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.EarlyRepaymentEvaluationDates;
+import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import com.wl2c.elswhereproductservice.domain.product.repository.EarlyRepaymentEvaluationDatesRepository;
 import com.wl2c.elswhereproductservice.domain.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -41,5 +43,18 @@ public class RepaymentEvaluationDatesService {
             nextDate = earlyRepaymentEvaluationDatesRepository.findNextEarlyRepaymentEvaluationDate(productId).get();
         }
         return new ResponseNextRepaymentEvaluationDateDto(nextDate);
+    }
+
+    public ResponseMaturityRepaymentEvaluationDateDto findMaturityRepaymentEvaluationDate(Long productId) {
+
+        Product product = productRepository.findOne(productId).orElseThrow(ProductNotFoundException::new);
+        if (product.getMaturityEvaluationDate() == null) {
+            throw new ProductMaturityEvaluationDateNotFoundException();
+        }
+
+        return new ResponseMaturityRepaymentEvaluationDateDto(
+                product.getMaturityEvaluationDate(),
+                product.getMaturityEvaluationDateType()
+        );
     }
 }
