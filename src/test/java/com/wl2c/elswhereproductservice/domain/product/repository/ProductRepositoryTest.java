@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.repository;
 
+import com.wl2c.elswhereproductservice.domain.product.model.MaturityEvaluationDateType;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
@@ -34,6 +35,8 @@ public class ProductRepositoryTest {
                 3,
                 LocalDate.now().minusDays(1),
                 LocalDate.now().plusYears(3),
+                LocalDate.now().plusYears(3).minusDays(5),
+                MaturityEvaluationDateType.SINGLE,
                 new BigDecimal("10.423"),
                 LocalDate.now().minusDays(14),
                 LocalDate.now().minusDays(1),
@@ -49,6 +52,8 @@ public class ProductRepositoryTest {
                 3,
                 LocalDate.now().plusDays(1),
                 LocalDate.now().plusYears(3),
+                LocalDate.now().plusYears(3).minusDays(3),
+                MaturityEvaluationDateType.SINGLE,
                 new BigDecimal("15.34"),
                 LocalDate.now().minusDays(14),
                 LocalDate.now(),

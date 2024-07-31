@@ -2,8 +2,10 @@ package com.wl2c.elswhereproductservice.domain.product.controller;
 
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseNextRepaymentEvaluationDateDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
+import com.wl2c.elswhereproductservice.domain.product.service.RepaymentEvaluationDatesService;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
 import com.wl2c.elswhereproductservice.global.model.dto.ResponsePage;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,6 +26,7 @@ import java.util.Map;
 public class ProductController {
 
     private final ProductService productService;
+    private final RepaymentEvaluationDatesService repaymentEvaluationDatesService;
 
     /**
      * 청약 중인 상품 목록
@@ -69,6 +72,18 @@ public class ProductController {
 
     /**
      * 상품 단건 조회
+     * <p>
+     *     maturityEvaluationDateType(만기 평가일 개수)을 제공하는 이유<br/>
+     *     발행사에서 만기 평가일의 경우, 예정거래일 중 거래소 또는 관련 거래소가 개장하지 못하거나 시장교란 사유가 발생한 날을 대비하여 여러 만기 평가일을 제공하는 경우가 있습니다.<br/>
+     *     실제 서버에서는 maturityEvaluationDate는 최초 만기 평가일 날짜만 가져오지만, 발행사가 만기 평가일을 여러 날로 설정했음을 나타내고자 해당 maturityEvaluationDateType을 제공합니다.<br/><br/>
+     *
+     *     maturityEvaluationDateType(만기 평가일 개수)의 각 값들의 의미는 아래와 같습니다.
+     *
+     *     한 개의 만기 평가일 : SINGLE
+     *     여러 개의 만기 평가일 : MULTIPLE
+     *     파악되지 않음(서버에서 추가 파싱 필요 혹은 투자 설명서 오류) : UNKNOWN
+     *
+     * </p>
      *
      * @param id 조회할 상품 id
      * @return 상품 상세 정보
@@ -108,4 +123,19 @@ public class ProductController {
         Page<SummarizedProductDto> result = productService.searchProduct(requestProductSearchDto, pageable);
         return new ResponsePage<>(result);
     }
+
+    /**
+     * 특정 상품의 다음 상환평가일 조회
+     * <p>
+     *     조기상환평가일이 모두 지나면, 가장 마지막은 만기상환평가일을 보여줍니다.
+     * </p>
+     *
+     * @param id 상품 id
+     * @return 다음 상환평가일
+     */
+    @GetMapping("/next/evaluation/{id}")
+    public ResponseNextRepaymentEvaluationDateDto findNextRepaymentEvaluationDate(@PathVariable Long id) {
+        return repaymentEvaluationDatesService.findNextRepaymentEvaluationDate(id);
+    }
+
 }
