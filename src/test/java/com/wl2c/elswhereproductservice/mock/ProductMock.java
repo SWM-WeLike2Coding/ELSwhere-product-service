@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.mock;
 
+import com.wl2c.elswhereproductservice.domain.product.model.MaturityEvaluationDateType;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
@@ -15,6 +16,8 @@ public class ProductMock {
                                  int equityCount,
                                  LocalDate issuedDate,
                                  LocalDate maturityDate,
+                                 LocalDate maturityEvaluationDate,
+                                 MaturityEvaluationDateType maturityEvaluationDateType,
                                  BigDecimal yieldIfConditionsMet,
                                  LocalDate subscriptionStartDate,
                                  LocalDate subscriptionEndDate,
@@ -29,6 +32,8 @@ public class ProductMock {
                 .equityCount(equityCount)
                 .issuedDate(issuedDate)
                 .maturityDate(maturityDate)
+                .maturityEvaluationDate(maturityEvaluationDate)
+                .maturityEvaluationDateType(maturityEvaluationDateType)
                 .yieldIfConditionsMet(yieldIfConditionsMet)
                 .subscriptionStartDate(subscriptionStartDate)
                 .subscriptionEndDate(subscriptionEndDate)
