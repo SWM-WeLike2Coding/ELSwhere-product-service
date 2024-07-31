@@ -25,6 +25,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "order by case when :sortType = 'knock-in' and p.knockIn is null then 1 else 0 end ")
     Page<Product> listByEndSale(@Param("sortType") String sortType, Pageable pageable);
 
+    @Query("select p from Product p " +
+            "where p.productState = 'ACTIVE' " +
+            "and p.id in :productIdList ")
+    List<Product> listByIds(@Param("productIdList") List<Long> productIdList);
+
     @Query("select p from Product p where p.productState = 'ACTIVE' and p.id = :id ")
     Optional<Product> findOne(@Param("id") Long id);
 

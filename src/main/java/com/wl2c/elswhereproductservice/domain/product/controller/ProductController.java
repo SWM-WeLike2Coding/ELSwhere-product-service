@@ -1,6 +1,7 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseMaturityRepaymentEvaluationDateDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseNextRepaymentEvaluationDateDto;
@@ -69,6 +70,20 @@ public class ProductController {
                                                             @ParameterObject Pageable pageable) {
         Page<SummarizedProductDto> result = productService.listByEndSale(type, pageable);
         return new ResponsePage<>(result);
+    }
+
+    /**
+     * 여러 상품 id로 해당 상품 리스트 조회
+     * <p>
+     *     참고 : user-service와 product-service 통신 간에 사용하고자 만든 API 입니다.
+     * </p>
+     *
+     * @param requestProductIdListDto 조회하고자 하는 상품 id 리스트
+     * @return 상품 리스트
+     */
+    @PostMapping("/list")
+    public List<SummarizedProductDto> listByProductIds(@Valid @RequestBody RequestProductIdListDto requestProductIdListDto) {
+        return productService.listByProductIds(requestProductIdListDto.getProductIdList());
     }
 
     /**
