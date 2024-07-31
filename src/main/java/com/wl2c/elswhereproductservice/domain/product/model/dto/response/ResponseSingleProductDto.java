@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.model.dto.response;
 
+import com.wl2c.elswhereproductservice.domain.product.model.MaturityEvaluationDateType;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -36,6 +37,12 @@ public class ResponseSingleProductDto {
 
     @Schema(description = "자동조기상환평가일", example = "1차: 2024년 12월 20일 / 2차: 2025년 06월 20일 / 3차: 2025년 12월 19일")
     private final String earlyRepaymentEvaluationDates;
+
+    @Schema(description = "만기상환평가일", example = "2026년 6월 19일")
+    private final LocalDate maturityRepaymentEvaluationDates;
+
+    @Schema(description = "만기상환평가일 개수", example = "SINGLE or MULTIPLE or UNKNOWN")
+    private final MaturityEvaluationDateType maturityRepaymentEvaluationDateType;
 
     @Schema(description = "발행일", example = "2024-06-21")
     private final LocalDate issuedDate;
@@ -88,6 +95,8 @@ public class ResponseSingleProductDto {
         this.knockIn = product.getKnockIn();
         this.volatilites = product.getVolatilites();
         this.earlyRepaymentEvaluationDates = product.getEarlyRepaymentEvaluationDates();
+        this.maturityRepaymentEvaluationDates = product.getMaturityEvaluationDate();
+        this.maturityRepaymentEvaluationDateType = product.getMaturityEvaluationDateType();
         this.issuedDate = product.getIssuedDate();
         this.maturityDate = product.getMaturityDate();
         this.yieldIfConditionsMet = product.getYieldIfConditionsMet();
