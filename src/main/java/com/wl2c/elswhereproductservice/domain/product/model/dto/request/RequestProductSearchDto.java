@@ -15,6 +15,9 @@ import java.util.List;
 @Builder
 public class RequestProductSearchDto {
 
+    @Schema(description = "상품 명", example = "oo투자증권 1234회")
+    private final String productName;
+
     @Schema(description = "기초자산 명", example = "['S&P500', 'Tesla']")
     private final List<String> equityNames;
 
