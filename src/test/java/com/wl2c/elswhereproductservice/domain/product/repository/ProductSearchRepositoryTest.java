@@ -72,7 +72,7 @@ public class ProductSearchRepositoryTest {
 
         product1 = ProductMock.create(
                 "AA증권",
-                "1호",
+                "AA증권 1호",
                 "삼성전자 / S&P500 / KOSPI200",
                 3,
                 LocalDate.now().minusDays(1),
@@ -89,7 +89,7 @@ public class ProductSearchRepositoryTest {
 
         product2 = ProductMock.create(
                 "BB증권",
-                "2호",
+                "BB증권 2호",
                 "S&P500 / HSCEI / KOSPI200",
                 3,
                 LocalDate.now().plusDays(1),
@@ -106,7 +106,7 @@ public class ProductSearchRepositoryTest {
 
         product3 = ProductMock.create(
                 "CC증권",
-                "3호",
+                "CC증권 3호",
                 "Tesla / 삼성전자 / NVIDIA",
                 3,
                 LocalDate.now().plusDays(1),
@@ -146,6 +146,36 @@ public class ProductSearchRepositoryTest {
                 tickerSymbols.get(5)
         ));
         productTickerSymbolRepository.saveAll(productTickerSymbol3);
+    }
+
+    @Test
+    @DisplayName("상품 검색 - 원하는 이름을 포함하는 상품을 잘 가져오는지 확인1")
+    void searchProductName_1() {
+        // given
+        RequestProductSearchDto searchDto = RequestProductSearchDto.builder()
+                .productName("AA")
+                .build();
+
+        // when
+        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+
+        // then
+        assertThat(result.getTotalElements()).isEqualTo(1);
+    }
+
+    @Test
+    @DisplayName("상품 검색 - 원하는 이름을 포함하는 상품을 잘 가져오는지 확인2")
+    void searchProductName_2() {
+        // given
+        RequestProductSearchDto searchDto = RequestProductSearchDto.builder()
+                .productName("증권")
+                .build();
+
+        // when
+        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+
+        // then
+        assertThat(result.getTotalElements()).isEqualTo(3);
     }
 
     @Test
@@ -206,7 +236,7 @@ public class ProductSearchRepositoryTest {
 
         // then
         assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().stream().anyMatch(product -> product.getName().equals("2호"))).isTrue();
+        assertThat(result.getContent().stream().anyMatch(product -> product.getName().equals("BB증권 2호"))).isTrue();
     }
 
     @Test
