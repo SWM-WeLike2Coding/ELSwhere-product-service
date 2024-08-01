@@ -42,6 +42,7 @@ public class ProductSearchRepository {
                 .select(new QSummarizedProductDto(product))
                 .from(product)
                 .where(
+                        productNameContain(requestDto.getProductName()),
                         equityNamesIn(requestDto.getEquityNames()),
                         equityCountEq(requestDto.getEquityCount()),
                         issuerEq(requestDto.getIssuer()),
@@ -65,6 +66,7 @@ public class ProductSearchRepository {
                 .select(product.count())
                 .from(product)
                 .where(
+                        productNameContain(requestDto.getProductName()),
                         equityNamesIn(requestDto.getEquityNames()),
                         equityCountEq(requestDto.getEquityCount()),
                         issuerEq(requestDto.getIssuer()),
@@ -83,6 +85,12 @@ public class ProductSearchRepository {
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
+    // 상품 명 (일부 가능)
+    private BooleanExpression productNameContain(String name) {
+        return name != null ? product.name.contains(name) : null;
+    }
+
+    // 기초자산 명
     private BooleanExpression equityNamesIn(List<String> equityNames) {
         if (equityNames != null) {
             List<String> tickerSymbolList = new ArrayList<>();
@@ -204,6 +212,7 @@ public class ProductSearchRepository {
         return null;
     }
 
+    // 상환일 간격
     private BooleanExpression redemptionIntervalEq(Integer redemptionInterval) {
         if (redemptionInterval != null) {
             List<Tuple> results = queryFactory
@@ -251,6 +260,7 @@ public class ProductSearchRepository {
         return null;
     }
 
+    // 기초자산 유형
     private BooleanExpression equityTypeEq(UnderlyingAssetType type) {
         List<Long> result = new ArrayList<>();
 
