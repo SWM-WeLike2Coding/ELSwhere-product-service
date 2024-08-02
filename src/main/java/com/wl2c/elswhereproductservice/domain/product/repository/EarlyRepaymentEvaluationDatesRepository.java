@@ -11,6 +11,12 @@ import java.util.Optional;
 
 public interface EarlyRepaymentEvaluationDatesRepository extends JpaRepository<EarlyRepaymentEvaluationDates, Long> {
 
+    @Query("select count(e) + 1 from EarlyRepaymentEvaluationDates e " +
+            "where e.product.id = :productId " +
+            "and e.earlyRepaymentEvaluationDate < :targetDate ")
+    Optional<Integer> findNextEarlyRepaymentEvaluationDateOrder(@RequestParam("productId") Long productId,
+                                                                @RequestParam("targetDate") LocalDate targetDate);
+
     @Query("select e.earlyRepaymentEvaluationDate from EarlyRepaymentEvaluationDates e " +
             "where e.product.productState = 'ACTIVE' " +
             "and e.product.id = :productId " +

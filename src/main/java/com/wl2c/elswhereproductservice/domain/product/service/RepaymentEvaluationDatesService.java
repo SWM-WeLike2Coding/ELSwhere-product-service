@@ -31,6 +31,7 @@ public class RepaymentEvaluationDatesService {
             throw new ProductEarlyRepaymentEvaluationDateFoundException();
         }
 
+        int order;
         LocalDate nextDate;
         if (earlyRepaymentEvaluationDatesRepository.findNextEarlyRepaymentEvaluationDate(productId).isEmpty()) {
             // 자동 조기 상환일이 다 끝났다면, 마지막 만기 상환 평가일을 보여주도록함
@@ -38,11 +39,13 @@ public class RepaymentEvaluationDatesService {
             if (nextDate == null) {
                 throw new ProductMaturityEvaluationDateNotFoundException();
             }
+            order = earlyRepaymentEvaluationDatesList.size() + 1;
 
         } else {
             nextDate = earlyRepaymentEvaluationDatesRepository.findNextEarlyRepaymentEvaluationDate(productId).get();
+            order = earlyRepaymentEvaluationDatesRepository.findNextEarlyRepaymentEvaluationDateOrder(productId, nextDate).get();
         }
-        return new ResponseNextRepaymentEvaluationDateDto(nextDate);
+        return new ResponseNextRepaymentEvaluationDateDto(order, nextDate);
     }
 
     public ResponseMaturityRepaymentEvaluationDateDto findMaturityRepaymentEvaluationDate(Long productId) {
