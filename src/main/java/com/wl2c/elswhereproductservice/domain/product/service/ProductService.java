@@ -72,7 +72,9 @@ public class ProductService {
     }
 
     public List<SummarizedProductDto> listByProductIds(List<Long> productIdList) {
+        log.info("Before adding the products data");
         List<Product> productList = productRepository.listByIds(productIdList);
+        log.info("After adding the products data");
 
         return productList.stream()
                 .map(SummarizedProductDto::new)
@@ -80,11 +82,13 @@ public class ProductService {
     }
 
     public ResponseSingleProductDto findOne(Long id) {
+        log.info("Before retrieving the product data");
         Product product = productRepository.findOne(id).orElseThrow(ProductNotFoundException::new);
         List<TickerSymbol> tickerSymbolList = tickerSymbolRepository.findTickerSymbolList(id);
 
         Map<String, String> equityTickerSymbols = tickerSymbolList.stream()
                 .collect(Collectors.toMap(TickerSymbol::getEquityName, TickerSymbol::getTickerSymbol));
+        log.info("After adding the retrieved product data");
 
         return new ResponseSingleProductDto(product, equityTickerSymbols);
     }
