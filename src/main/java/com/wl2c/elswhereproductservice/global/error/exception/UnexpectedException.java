@@ -1,4 +1,4 @@
-package com.wl2c.elswhereproductservice.global.exception;
+package com.wl2c.elswhereproductservice.global.error.exception;
 
 import org.springframework.http.HttpStatus;
 
