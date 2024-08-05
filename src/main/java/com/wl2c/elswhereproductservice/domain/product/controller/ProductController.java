@@ -23,7 +23,7 @@ import java.util.Map;
 
 @Tag(name = "상품", description = "상품 관련 api")
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/v1/product")
 @RequiredArgsConstructor
 public class ProductController {
 
