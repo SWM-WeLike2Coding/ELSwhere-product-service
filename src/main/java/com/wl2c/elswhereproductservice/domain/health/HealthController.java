@@ -1,4 +1,4 @@
-package com.wl2c.elswhereproductservice.product.controller;
+package com.wl2c.elswhereproductservice.domain.health;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

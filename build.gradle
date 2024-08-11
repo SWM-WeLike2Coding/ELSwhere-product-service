@@ -31,7 +31,14 @@ dependencies {
     // spring boot
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    // mysql
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    // h2
+    testRuntimeOnly 'com.h2database:h2'
 
     // devtools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
@@ -39,15 +46,33 @@ dependencies {
     // spring cloud
     implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
 
+    // Zipkin + Micrometer Tracing
+    implementation 'io.micrometer:micrometer-tracing-bridge-brave'
+    implementation 'io.zipkin.reporter2:zipkin-reporter-brave'
+    implementation 'io.github.openfeign:feign-micrometer'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
     // lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Querydsl
+    implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
+
     // swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+    annotationProcessor 'com.github.therapi:therapi-runtime-javadoc-scribe:0.15.0'
+    implementation 'com.github.therapi:therapi-runtime-javadoc:0.15.0'
 
     // test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.squareup.okhttp3:mockwebserver:4.10.0'
+    testImplementation "org.testcontainers:junit-jupiter:1.16.3"
 }
 
 dependencyManagement {
@@ -58,4 +83,8 @@ dependencyManagement {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+clean {
+    delete file('src/main/generated')
 }
