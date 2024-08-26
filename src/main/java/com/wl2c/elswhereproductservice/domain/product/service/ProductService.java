@@ -4,6 +4,7 @@ import com.wl2c.elswhereproductservice.domain.product.exception.NotOnSaleProduct
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.WrongProductSortTypeException;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
@@ -34,6 +35,8 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final TickerSymbolRepository tickerSymbolRepository;
     private final ProductSearchRepository productSearchRepository;
+
+    private final RepaymentEvaluationDatesService repaymentEvaluationDatesService;
 
     public Page<SummarizedProductDto> listByOnSale(String type, Pageable pageable) {
         Sort sort = switch (type) {
@@ -79,6 +82,21 @@ public class ProductService {
         return productList.stream()
                 .map(SummarizedProductDto::new)
                 .collect(Collectors.toList());
+    }
+
+    public List<SummarizedProductForHoldingDto> holdingListByProductIds(List<Long> productIdList) {
+        log.info("Before adding the products data");
+        List<Product> productList = productRepository.listByIds(productIdList);
+        log.info("After adding the products data");
+
+        List<SummarizedProductForHoldingDto> summarizedProductForHoldingDtos = new ArrayList<>();
+        for (Product product : productList) {
+            summarizedProductForHoldingDtos.add(new SummarizedProductForHoldingDto(
+                    product,
+                    repaymentEvaluationDatesService.findNextRepaymentEvaluationDate(product.getId()).getNextRepaymentEvaluationDate()
+            ));
+        }
+        return summarizedProductForHoldingDtos;
     }
 
     public ResponseSingleProductDto findOne(Long id) {

@@ -1,6 +1,7 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseMaturityRepaymentEvaluationDateDto;
@@ -84,6 +85,20 @@ public class ProductController {
     @PostMapping("/list")
     public List<SummarizedProductDto> listByProductIds(@Valid @RequestBody RequestProductIdListDto requestProductIdListDto) {
         return productService.listByProductIds(requestProductIdListDto.getProductIdList());
+    }
+
+    /**
+     * 여러 상품 id로 보유 상품에서 사용하기 위한 해당 상품 리스트 조회
+     * <p>
+     *     참고 : user-service와 product-service 통신 간에 사용하고자 만든 API 입니다.
+     * </p>
+     *
+     * @param requestProductIdListDto 조회하고자 하는 상품 id 리스트
+     * @return 보유 상품에서 사용하기 위한 정보를 담은 상품 리스트
+     */
+    @PostMapping("/holding/list")
+    public List<SummarizedProductForHoldingDto> holdingListByProductIds(@Valid @RequestBody RequestProductIdListDto requestProductIdListDto) {
+        return productService.holdingListByProductIds(requestProductIdListDto.getProductIdList());
     }
 
     /**
