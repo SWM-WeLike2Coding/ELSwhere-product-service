@@ -4,10 +4,8 @@ import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedP
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseMaturityRepaymentEvaluationDateDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseNextRepaymentEvaluationDateDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.response.*;
+import com.wl2c.elswhereproductservice.domain.product.service.ProductEquityVolatilityService;
 import com.wl2c.elswhereproductservice.domain.product.service.RepaymentEvaluationDatesService;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
 import com.wl2c.elswhereproductservice.global.model.dto.ResponsePage;
@@ -30,6 +28,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final RepaymentEvaluationDatesService repaymentEvaluationDatesService;
+    private final ProductEquityVolatilityService productEquityVolatilityService;
 
     /**
      * 청약 중인 상품 목록
@@ -186,5 +185,16 @@ public class ProductController {
     @GetMapping("/maturity/evaluation/{id}")
     public ResponseMaturityRepaymentEvaluationDateDto findMaturityRepaymentEvaluationDate(@PathVariable Long id) {
         return repaymentEvaluationDatesService.findMaturityRepaymentEvaluationDate(id);
+    }
+
+    /**
+     * 특정 상품의 기초자산별 변동성 조회
+     *
+     * @param id 상품 id
+     * @return 기초자산명 및 해당 각 기초자산에 대한 변동성 dto
+     */
+    @GetMapping("/equity/volatility/{id}")
+    public ResponseProductEquityVolatilityDto findProductEquityVolatilities(@PathVariable Long id) {
+        return productEquityVolatilityService.findProductEquityVolatilities(id);
     }
 }
