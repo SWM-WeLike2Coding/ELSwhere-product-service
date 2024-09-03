@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
+import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
@@ -8,7 +9,12 @@ import com.wl2c.elswhereproductservice.domain.product.model.dto.response.*;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductEquityVolatilityService;
 import com.wl2c.elswhereproductservice.domain.product.service.RepaymentEvaluationDatesService;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
+import com.wl2c.elswhereproductservice.global.error.exception.LocalizedMessageException;
 import com.wl2c.elswhereproductservice.global.model.dto.ResponsePage;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -152,6 +158,22 @@ public class ProductController {
                                                             @ParameterObject Pageable pageable) {
         Page<SummarizedProductDto> result = productService.searchProduct(requestProductSearchDto, pageable);
         return new ResponsePage<>(result);
+    }
+
+    /**
+     * 오늘 받아온 상품들의 id 리스트 조회
+     *
+     * @return 오늘 받아온 상품들의 id 리스트
+     */
+    @GetMapping("/received/today")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "성공",
+            content = {@Content(schema = @Schema(implementation = ResponseTodayReceivedProductIdsDto.class))}),
+        @ApiResponse(responseCode = "404", description = "오늘 받아온 상품들이 존재하지 않습니다.",
+            content = {@Content(schema = @Schema(implementation = TodayReceivedProductsNotFoundException.class))})
+    })
+    public ResponseTodayReceivedProductIdsDto findTodayReceivedProductIds() {
+        return productService.findTodayReceivedProductIds();
     }
 
     /**
