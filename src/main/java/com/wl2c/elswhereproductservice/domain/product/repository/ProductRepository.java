@@ -31,7 +31,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> listByIds(@Param("productIdList") List<Long> productIdList);
 
     @Query("select p from Product p " +
-            "where p.productState = 'ACTIVE' and DATE(p.createdAt) = CURRENT_DATE ")
+            "where p.productState = 'ACTIVE' and function('date', p.createdAt) = CURRENT_DATE ")
     List<Product> listByCreatedAtToday();
 
     @Query("select p from Product p where p.productState = 'ACTIVE' and p.id = :id ")
