@@ -86,7 +86,16 @@ public class ResponseSingleProductDto {
     @Schema(description = "각 기초자산 별 티커 정보")
     private final Map<String, String> equityTickerSymbols;
 
-    public ResponseSingleProductDto(Product product, Map<String, String> equityTickerSymbols) {
+    @Schema(description = "좋아요 수", example = "16")
+    private final int likes;
+
+    @Schema(description = "내가 좋아요를 눌렀는지?", example = "false")
+    private final boolean isLiked;
+
+    public ResponseSingleProductDto(Product product,
+                                    Map<String, String> equityTickerSymbols,
+                                    int likes,
+                                    boolean isLiked) {
         this.id = product.getId();
         this.issuer = product.getIssuer();
         this.name = product.getName();
@@ -111,5 +120,7 @@ public class ResponseSingleProductDto {
         this.link = product.getLink();
         this.summaryInvestmentProspectusLink = product.getSummaryInvestmentProspectusLink();
         this.equityTickerSymbols = equityTickerSymbols;
+        this.likes = likes;
+        this.isLiked = isLiked;
     }
 }

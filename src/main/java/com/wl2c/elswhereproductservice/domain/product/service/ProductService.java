@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.service;
 
+import com.wl2c.elswhereproductservice.domain.like.service.LikeService;
 import com.wl2c.elswhereproductservice.domain.product.exception.NotOnSaleProductException;
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
@@ -39,6 +40,7 @@ public class ProductService {
     private final ProductSearchRepository productSearchRepository;
 
     private final RepaymentEvaluationDatesService repaymentEvaluationDatesService;
+    private final LikeService likeService;
 
     public Page<SummarizedProductDto> listByOnSale(String type, Pageable pageable) {
         Sort sort = switch (type) {
@@ -101,16 +103,19 @@ public class ProductService {
         return summarizedProductForHoldingDtos;
     }
 
-    public ResponseSingleProductDto findOne(Long id) {
+    public ResponseSingleProductDto findOne(Long productId, Long userId) {
         log.info("Before retrieving the product data");
-        Product product = productRepository.findOne(id).orElseThrow(ProductNotFoundException::new);
-        List<TickerSymbol> tickerSymbolList = tickerSymbolRepository.findTickerSymbolList(id);
+        Product product = productRepository.findOne(productId).orElseThrow(ProductNotFoundException::new);
+        List<TickerSymbol> tickerSymbolList = tickerSymbolRepository.findTickerSymbolList(productId);
 
         Map<String, String> equityTickerSymbols = tickerSymbolList.stream()
                 .collect(Collectors.toMap(TickerSymbol::getEquityName, TickerSymbol::getTickerSymbol));
         log.info("After adding the retrieved product data");
 
-        return new ResponseSingleProductDto(product, equityTickerSymbols);
+        boolean isLiked = likeService.isLiked(productId, userId);
+        int likeCount = likeService.getCountOfLikes(productId);
+
+        return new ResponseSingleProductDto(product, equityTickerSymbols, likeCount, isLiked);
     }
 
     public Map<String, List<ResponseProductComparisonTargetDto>> findComparisonTargets(Long id) {
