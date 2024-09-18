@@ -42,12 +42,12 @@ public interface LikeService {
      */
     int getCountOfLikes(Long elementId);
 
-//    /**
-//     * 특정 사용자에 대한 '좋아요' 기록 dump
-//     *
-//     * @param userId 사용자 ID
-//     */
-//    void dumpToDbForUserId(Long userId);
+    /**
+     * 특정 사용자에 대한 '좋아요' 기록 dump
+     *
+     * @param userId 사용자 ID
+     */
+    void dumpToDbForUserId(Long userId);
 
 //    /**
 //     * 가장 많은 좋아요를 받은 상품을 확인한다.
