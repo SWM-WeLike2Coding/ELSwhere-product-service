@@ -38,13 +38,13 @@ public class ProductLikeController {
         likeService.cancelLike(id, parseLong(request.getHeader("requestId")));
     }
 
-//    /**
-//     * 레디스에 있는 특정 사용자에 대한 좋아요 기록 DB에 dump (프론트 사용x)
-//     */
-//    @PostMapping("/like/dump")
-//    public void dumpLike(HttpServletRequest request) {
-//        likeService.dumpToDbForUserId(parseLong(request.getHeader("requestId")));
-//    }
+    /**
+     * 레디스에 있는 특정 사용자에 대한 좋아요 기록 DB에 dump (프론트 사용x)
+     */
+    @PostMapping("/like/dump")
+    public void dumpLike(HttpServletRequest request) {
+        likeService.dumpToDbForUserId(parseLong(request.getHeader("requestId")));
+    }
 
 //    /**
 //     * 가장 많은 좋아요를 받은 상품 조회
