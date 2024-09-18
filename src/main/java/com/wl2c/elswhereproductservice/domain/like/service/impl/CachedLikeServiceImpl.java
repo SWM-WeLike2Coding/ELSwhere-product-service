@@ -224,7 +224,11 @@ public class CachedLikeServiceImpl implements LikeService {
 
             Optional<LikeElement> existingProduct = likePersistenceRepository.findById(productId);
             if (existingProduct.isPresent()) {
-                likePersistenceRepository.updateProductLikeCount(productId, delta);
+                if (existingProduct.get().getCount() + delta < 0) {
+                    likePersistenceRepository.updateProductLikeCount(productId, 0);
+                } else {
+                    likePersistenceRepository.updateProductLikeCount(productId, delta);
+                }
             } else {
                 Product product = productRepository.findById(productId).orElseThrow(ProductNotFoundException::new);
 
