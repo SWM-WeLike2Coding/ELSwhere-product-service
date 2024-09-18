@@ -1,9 +1,5 @@
 package com.wl2c.elswhereproductservice.domain.like.service;
 
-import com.wl2c.elswhereproductservice.domain.like.model.dto.ResponseMostLikedProductDto;
-
-import java.util.List;
-
 public interface LikeService {
 
     /**
