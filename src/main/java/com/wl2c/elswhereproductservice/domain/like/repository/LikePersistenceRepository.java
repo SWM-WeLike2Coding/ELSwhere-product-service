@@ -11,7 +11,7 @@ public interface LikePersistenceRepository extends JpaRepository<LikeElement, Lo
     @Query("select l.count " +
             "from LikeElement l " +
             "where l.product.id = :productId")
-    int findLikeCountByProductId(@Param("productId") Long productId);
+    Integer findLikeCountByProductId(@Param("productId") Long productId);
 
     @Modifying
     @Query("update LikeElement l " +
