@@ -180,68 +180,68 @@ public class CachedLikeServiceImpl implements LikeService {
         return allLikes.size();
     }
 
-//    @Override
-//    @Transactional
-//    public void dumpToDbForUserId(Long userId) {
-//        Map<Long, Integer> productLikeChanges = new HashMap<>();
-//
-//        List<LikeEntry> allLikes = likeMemoryRepository.getAllLikesAndClear(userId);
-//        for (LikeEntry likeEntry : allLikes) {
-//            Product product = productRepository.getReferenceById(likeEntry.getProductId());
-//
-//            ProductLikeMessage productLikeMessage;
-//            if (likeEntry.getState() == LikeState.LIKED) {
-//                // -> kafka
-//                productLikeMessage = ProductLikeMessage.builder()
-//                        .userId(userId)
-//                        .productId(likeEntry.getProductId())
-//                        .likeState(LikeState.LIKED)
-//                        .build();
-//                productLikeMessageSender.send("product-like", productLikeMessage);
-//
-//                // product id에 대한 좋아요 누적 +1
-//                productLikeChanges.merge(product.getId(), 1, Integer::sum);
-//
-//            } else if (likeEntry.getState() == LikeState.CANCELLED) {
-//                // -> kafka
-//                productLikeMessage = ProductLikeMessage.builder()
-//                        .userId(userId)
-//                        .productId(likeEntry.getProductId())
-//                        .likeState(LikeState.CANCELLED)
-//                        .build();
-//                productLikeMessageSender.send("product-like", productLikeMessage);
-//
-//                // product id에 대한 좋아요 누적 -1
-//                productLikeChanges.merge(product.getId(), -1, Integer::sum);
-//
-//            }
-//        }
-//
-//        // 누적된 좋아요 개수 반영
-//        for (Map.Entry<Long, Integer> entry : productLikeChanges.entrySet()) {
-//            Long productId = entry.getKey();
-//            Integer delta = entry.getValue();
-//
-//            Optional<LikeElement> existingProduct = likePersistenceRepository.findById(productId);
-//            if (existingProduct.isPresent()) {
-//                likePersistenceRepository.updateProductLikeCount(productId, delta);
-//            } else {
-//                Product product = productRepository.findById(productId).orElseThrow(ProductNotFoundException::new);
-//
-//                LikeElement likeElement;
-//                if (delta > 0) {
-//                    likeElement = LikeElement.builder()
-//                            .product(product)
-//                            .count(delta)
-//                            .build();
-//                } else {
-//                    likeElement = LikeElement.builder()
-//                            .product(product)
-//                            .build();
-//                }
-//                likePersistenceRepository.save(likeElement);
-//            }
-//        }
-//        productLikeChanges.clear();
-//    }
+    @Override
+    @Transactional
+    public void dumpToDbForUserId(Long userId) {
+        Map<Long, Integer> productLikeChanges = new HashMap<>();
+
+        List<LikeEntry> allLikes = likeMemoryRepository.getAllLikesAndClear(userId);
+        for (LikeEntry likeEntry : allLikes) {
+            Product product = productRepository.getReferenceById(likeEntry.getProductId());
+
+            ProductLikeMessage productLikeMessage;
+            if (likeEntry.getState() == LikeState.LIKED) {
+                // -> kafka
+                productLikeMessage = ProductLikeMessage.builder()
+                        .userId(userId)
+                        .productId(likeEntry.getProductId())
+                        .likeState(LikeState.LIKED)
+                        .build();
+                productLikeMessageSender.send("product-like", productLikeMessage);
+
+                // product id에 대한 좋아요 누적 +1
+                productLikeChanges.merge(product.getId(), 1, Integer::sum);
+
+            } else if (likeEntry.getState() == LikeState.CANCELLED) {
+                // -> kafka
+                productLikeMessage = ProductLikeMessage.builder()
+                        .userId(userId)
+                        .productId(likeEntry.getProductId())
+                        .likeState(LikeState.CANCELLED)
+                        .build();
+                productLikeMessageSender.send("product-like", productLikeMessage);
+
+                // product id에 대한 좋아요 누적 -1
+                productLikeChanges.merge(product.getId(), -1, Integer::sum);
+
+            }
+        }
+
+        // 누적된 좋아요 개수 반영
+        for (Map.Entry<Long, Integer> entry : productLikeChanges.entrySet()) {
+            Long productId = entry.getKey();
+            Integer delta = entry.getValue();
+
+            Optional<LikeElement> existingProduct = likePersistenceRepository.findById(productId);
+            if (existingProduct.isPresent()) {
+                likePersistenceRepository.updateProductLikeCount(productId, delta);
+            } else {
+                Product product = productRepository.findById(productId).orElseThrow(ProductNotFoundException::new);
+
+                LikeElement likeElement;
+                if (delta > 0) {
+                    likeElement = LikeElement.builder()
+                            .product(product)
+                            .count(delta)
+                            .build();
+                } else {
+                    likeElement = LikeElement.builder()
+                            .product(product)
+                            .build();
+                }
+                likePersistenceRepository.save(likeElement);
+            }
+        }
+        productLikeChanges.clear();
+    }
 }
