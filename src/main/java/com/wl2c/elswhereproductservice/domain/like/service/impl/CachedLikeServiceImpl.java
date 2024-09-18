@@ -93,8 +93,8 @@ public class CachedLikeServiceImpl implements LikeService {
     public int getCountOfLikes(Long productId) {
         int count = likeMemoryRepository.getCachedLikeCount(productId);
         if (count == -1) {
-//            count = likePersistenceRepository.countById(productId);
-            count = likePersistenceRepository.findLikeCountByProductId(productId);
+            Integer likeCount = likePersistenceRepository.findLikeCountByProductId(productId);
+            count = (likeCount != null) ? likeCount : 0;
             likeMemoryRepository.setLikeCount(productId, count, countCacheTime);
         }
         return count;

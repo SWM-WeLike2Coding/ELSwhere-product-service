@@ -33,10 +33,10 @@ public interface LikeService {
      * '좋아요' 개수 가져오기.
      * 메모리에 '좋아요' 개수가 없다면 캐싱한다.
      *
-     * @param elementId 요소 ID
+     * @param productId 상품 ID
      * @return 좋아요 개수
      */
-    int getCountOfLikes(Long elementId);
+    int getCountOfLikes(Long productId);
 
     /**
      * 특정 사용자에 대한 '좋아요' 기록 dump
