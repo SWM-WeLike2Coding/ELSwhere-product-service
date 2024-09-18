@@ -9,13 +9,13 @@ import com.wl2c.elswhereproductservice.domain.product.model.dto.response.*;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductEquityVolatilityService;
 import com.wl2c.elswhereproductservice.domain.product.service.RepaymentEvaluationDatesService;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
-import com.wl2c.elswhereproductservice.global.error.exception.LocalizedMessageException;
 import com.wl2c.elswhereproductservice.global.model.dto.ResponsePage;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+
+import static java.lang.Long.parseLong;
 
 @Tag(name = "상품", description = "상품 관련 api")
 @RestController
@@ -125,8 +127,9 @@ public class ProductController {
      * @return 상품 상세 정보
      */
     @GetMapping("/{id}")
-    public ResponseSingleProductDto findOne(@PathVariable Long id) {
-        return productService.findOne(id);
+    public ResponseSingleProductDto findOne(HttpServletRequest request,
+                                            @PathVariable Long id) {
+        return productService.findOne(id, parseLong(request.getHeader("requestId")));
     }
 
     /**
