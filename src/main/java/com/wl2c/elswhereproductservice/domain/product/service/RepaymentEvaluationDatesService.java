@@ -27,9 +27,6 @@ public class RepaymentEvaluationDatesService {
     public ResponseNextRepaymentEvaluationDateDto findNextRepaymentEvaluationDate(Long productId) {
 
         List<EarlyRepaymentEvaluationDates> earlyRepaymentEvaluationDatesList = earlyRepaymentEvaluationDatesRepository.findAllEarlyRepaymentEvaluationDate(productId);
-        if (earlyRepaymentEvaluationDatesList.isEmpty()) {
-            throw new ProductEarlyRepaymentEvaluationDateFoundException();
-        }
 
         int order;
         LocalDate nextDate;
@@ -37,7 +34,7 @@ public class RepaymentEvaluationDatesService {
             // 자동 조기 상환일이 다 끝났다면, 마지막 만기 상환 평가일을 보여주도록함
             nextDate = productRepository.findOne(productId).orElseThrow(ProductNotFoundException::new).getMaturityEvaluationDate();
             if (nextDate == null) {
-                throw new ProductMaturityEvaluationDateNotFoundException();
+                throw new ProductMaturityEvaluationDateNotFoundException(productId);
             }
             order = earlyRepaymentEvaluationDatesList.size() + 1;
 

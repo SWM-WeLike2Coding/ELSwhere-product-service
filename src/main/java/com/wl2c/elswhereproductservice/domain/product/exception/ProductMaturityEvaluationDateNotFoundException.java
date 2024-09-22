@@ -7,4 +7,8 @@ public class ProductMaturityEvaluationDateNotFoundException extends LocalizedMes
     public ProductMaturityEvaluationDateNotFoundException() {
         super(HttpStatus.NOT_FOUND, "notfound.product-maturity-repayment-evaluation-date");
     }
+
+    public ProductMaturityEvaluationDateNotFoundException(Long productId) {
+        super(HttpStatus.NOT_FOUND, "notfound.product-maturity-repayment-evaluation-date", "productId: " + productId);
+    }
 }
