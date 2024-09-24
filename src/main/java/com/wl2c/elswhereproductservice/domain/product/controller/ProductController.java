@@ -1,16 +1,21 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
+import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseMaturityRepaymentEvaluationDateDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseNextRepaymentEvaluationDateDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.response.*;
+import com.wl2c.elswhereproductservice.domain.product.service.ProductEquityVolatilityService;
 import com.wl2c.elswhereproductservice.domain.product.service.RepaymentEvaluationDatesService;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
 import com.wl2c.elswhereproductservice.global.model.dto.ResponsePage;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
@@ -21,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Long.parseLong;
+
 @Tag(name = "상품", description = "상품 관련 api")
 @RestController
 @RequestMapping("/v1/product")
@@ -29,6 +36,7 @@ public class ProductController {
 
     private final ProductService productService;
     private final RepaymentEvaluationDatesService repaymentEvaluationDatesService;
+    private final ProductEquityVolatilityService productEquityVolatilityService;
 
     /**
      * 청약 중인 상품 목록
@@ -87,6 +95,20 @@ public class ProductController {
     }
 
     /**
+     * 여러 상품 id로 보유 상품에서 사용하기 위한 해당 상품 리스트 조회
+     * <p>
+     *     참고 : user-service와 product-service 통신 간에 사용하고자 만든 API 입니다.
+     * </p>
+     *
+     * @param requestProductIdListDto 조회하고자 하는 상품 id 리스트
+     * @return 보유 상품에서 사용하기 위한 정보를 담은 상품 리스트
+     */
+    @PostMapping("/holding/list")
+    public List<SummarizedProductForHoldingDto> holdingListByProductIds(@Valid @RequestBody RequestProductIdListDto requestProductIdListDto) {
+        return productService.holdingListByProductIds(requestProductIdListDto.getProductIdList());
+    }
+
+    /**
      * 상품 단건 조회
      * <p>
      *     maturityEvaluationDateType(만기 평가일 개수)을 제공하는 이유<br/>
@@ -105,8 +127,9 @@ public class ProductController {
      * @return 상품 상세 정보
      */
     @GetMapping("/{id}")
-    public ResponseSingleProductDto findOne(@PathVariable Long id) {
-        return productService.findOne(id);
+    public ResponseSingleProductDto findOne(HttpServletRequest request,
+                                            @PathVariable Long id) {
+        return productService.findOne(id, parseLong(request.getHeader("requestId")));
     }
 
     /**
@@ -141,6 +164,22 @@ public class ProductController {
     }
 
     /**
+     * 오늘 받아온 상품들의 id 리스트 조회
+     *
+     * @return 오늘 받아온 상품들의 id 리스트
+     */
+    @GetMapping("/received/today")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "성공",
+            content = {@Content(schema = @Schema(implementation = ResponseTodayReceivedProductIdsDto.class))}),
+        @ApiResponse(responseCode = "404", description = "오늘 받아온 상품들이 존재하지 않습니다.",
+            content = {@Content(schema = @Schema(implementation = TodayReceivedProductsNotFoundException.class))})
+    })
+    public ResponseTodayReceivedProductIdsDto findTodayReceivedProductIds() {
+        return productService.findTodayReceivedProductIds();
+    }
+
+    /**
      * 특정 상품의 다음 상환평가일 조회
      * <p>
      *     조기상환평가일이 모두 지나면, 가장 마지막은 만기상환평가일을 보여줍니다.
@@ -171,5 +210,16 @@ public class ProductController {
     @GetMapping("/maturity/evaluation/{id}")
     public ResponseMaturityRepaymentEvaluationDateDto findMaturityRepaymentEvaluationDate(@PathVariable Long id) {
         return repaymentEvaluationDatesService.findMaturityRepaymentEvaluationDate(id);
+    }
+
+    /**
+     * 특정 상품의 기초자산별 변동성 조회
+     *
+     * @param id 상품 id
+     * @return 기초자산명 및 해당 각 기초자산에 대한 변동성 dto
+     */
+    @GetMapping("/equity/volatility/{id}")
+    public ResponseProductEquityVolatilityDto findProductEquityVolatilities(@PathVariable Long id) {
+        return productEquityVolatilityService.findProductEquityVolatilities(id);
     }
 }
