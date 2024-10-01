@@ -44,12 +44,4 @@ public interface LikeService {
      * @param userId 사용자 ID
      */
     void dumpToDbForUserId(Long userId);
-
-//    /**
-//     * 가장 많은 좋아요를 받은 상품을 확인한다.
-//     * 좋아요 개수가 같은 경우를 고려해서 List로 반환
-//     *
-//     * @return 가장 많은 좋아요를 받은 상품 정보(id, 개수) 리스트 반환
-//     */
-//    List<ResponseMostLikedProductDto> mostLiked();
 }
