@@ -7,9 +7,11 @@ import com.wl2c.elswhereproductservice.domain.like.repository.LikeMemoryReposito
 import com.wl2c.elswhereproductservice.global.config.redis.RedisKeys;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,6 +93,31 @@ public class LikeRedisRepository implements LikeMemoryRepository {
     public void decreaseLikeCount(Long productId) {
         String key = combine(RedisKeys.LIKE_COUNT_KEY, LikeTarget.Product);
         redisTemplate.opsForZSet().incrementScore(key, String.valueOf(productId), -1);
+    }
+
+    @Override
+    public void setLikeCountDelta(Long productId, Duration expiresAfter) {
+        String key = combine(RedisKeys.LIKE_COUNT_DELTA_KEY, LikeTarget.Product, LocalDate.now());
+        redisTemplate.opsForZSet().addIfAbsent(key, String.valueOf(productId), 0);
+        redisTemplate.expire(key, expiresAfter);
+    }
+
+    @Override
+    public void increaseLikeCountDelta(Long productId) {
+        String key = combine(RedisKeys.LIKE_COUNT_DELTA_KEY, LikeTarget.Product, LocalDate.now());
+        redisTemplate.opsForZSet().incrementScore(key, String.valueOf(productId), 1);
+    }
+
+    @Override
+    public void decreaseLikeCountDelta(Long productId) {
+        String key = combine(RedisKeys.LIKE_COUNT_DELTA_KEY, LikeTarget.Product, LocalDate.now());
+        redisTemplate.opsForZSet().incrementScore(key, String.valueOf(productId), -1);
+    }
+
+    @Override
+    public Set<ZSetOperations.TypedTuple<String>> getCachedLikeCountDeltaDesc() {
+        String key = combine(RedisKeys.LIKE_COUNT_DELTA_KEY, LikeTarget.Product, LocalDate.now());
+        return redisTemplate.opsForZSet().reverseRangeWithScores(key, 0, -1);
     }
 
     @Override

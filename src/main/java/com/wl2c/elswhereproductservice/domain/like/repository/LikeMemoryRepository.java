@@ -1,10 +1,12 @@
 package com.wl2c.elswhereproductservice.domain.like.repository;
 
 import com.wl2c.elswhereproductservice.domain.like.model.LikeEntry;
+import org.springframework.data.redis.core.ZSetOperations;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface LikeMemoryRepository {
 
@@ -30,7 +32,7 @@ public interface LikeMemoryRepository {
      * 캐싱되어있는 경우에는 true/false로 반환하지만, 캐싱되어있지 않다면 null을
      * 반환한다.
      *
-     * @param productId 요소 ID
+     * @param productId 상품 ID
      * @param userId    사용자 ID
      * @return 사용자가 좋아요를 눌렀는지 반환. 캐싱된 데이터가 없다면 null반환.
      */
@@ -48,7 +50,7 @@ public interface LikeMemoryRepository {
     /**
      * 메모리에 캐싱된 좋아요 개수 확인.
      *
-     * @param productId 요소 ID
+     * @param productId 상품 ID
      * @return 캐싱된 좋아요 개수. 없으면 -1리턴.
      */
     int getCachedLikeCount(Long productId);
@@ -56,7 +58,7 @@ public interface LikeMemoryRepository {
     /**
      * 좋아요 개수 캐싱
      *
-     * @param productId 요소 ID
+     * @param productId 상품 ID
      * @param count     좋아요 개수
      */
     void setLikeCount(Long productId, int count, Duration expiresAfter);
@@ -64,16 +66,44 @@ public interface LikeMemoryRepository {
     /**
      * 좋아요 개수 1 증가
      *
-     * @param productId 요소 ID
+     * @param productId 상품 ID
      */
     void increaseLikeCount(Long productId);
 
     /**
      * 좋아요 개수 1 감소
      *
-     * @param productId 요소 ID
+     * @param productId 상품 ID
      */
     void decreaseLikeCount(Long productId);
+
+    /**
+     * 좋아요 증감 수 생성
+     *
+     * @param productId 상품 ID
+     */
+    void setLikeCountDelta(Long productId, Duration expiresAfter);
+
+    /**
+     * 좋아요 증감 수 1 증가 반영
+     *
+     * @param productId 상품 ID
+     */
+    void increaseLikeCountDelta(Long productId);
+
+    /**
+     * 좋아요 증감 수 1 감소 반영
+     *
+     * @param productId 상품 ID
+     */
+    void decreaseLikeCountDelta(Long productId);
+
+    /**
+     * 캐싱되어 있는 상품에 대한 좋아요 증감수를 내림차순으로 가져온다.
+     *
+     * @return 캐싱된 좋아요 수를 내림차순으로 반환
+     */
+    Set<ZSetOperations.TypedTuple<String>> getCachedLikeCountDeltaDesc();
 
     /**
      * 캐싱된 모든 '좋아요' 데이터중에서 특정 유저의 것들만 가져오고, 모두 삭제한다.
