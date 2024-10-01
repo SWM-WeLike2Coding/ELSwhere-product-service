@@ -45,14 +45,4 @@ public class ProductLikeController {
     public void dumpLike(HttpServletRequest request) {
         likeService.dumpToDbForUserId(parseLong(request.getHeader("requestId")));
     }
-
-//    /**
-//     * 가장 많은 좋아요를 받은 상품 조회
-//     *
-//     * @return 가장 많은 좋아요를 받은 상품 리스트(개수 중복 고려)
-//     */
-//    @GetMapping("/most-liked")
-//    public List<ResponseMostLikedProductDto> mostLiked() {
-//        return likeService.mostLiked();
-//    }
 }
