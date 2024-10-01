@@ -3,7 +3,6 @@ package com.wl2c.elswhereproductservice.domain.product.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
-import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
@@ -12,7 +11,7 @@ import com.wl2c.elswhereproductservice.domain.product.model.UnderlyingAssetType;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.QSummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
-import com.wl2c.elswhereproductservice.domain.product.model.entity.QProductTickerSymbol;
+import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +34,16 @@ import static com.wl2c.elswhereproductservice.domain.product.model.entity.QProdu
 public class ProductSearchRepository {
 
     private final JPAQueryFactory queryFactory;
+
+    public List<Product> searchByIssueNumber(Integer issueNumber) {
+        return queryFactory.selectFrom(product)
+                .where(
+                        issueNumberEq(issueNumber),
+                        product.productState.eq(ProductState.ACTIVE)
+                )
+                .orderBy(product.id.desc())
+                .fetch();
+    }
 
     public Page<SummarizedProductDto> search(RequestProductSearchDto requestDto,
                                                  Pageable pageable) {
@@ -324,5 +333,10 @@ public class ProductSearchRepository {
             return product.subscriptionEndDate.loe(subscriptionEndDate);
         }
         return null;
+    }
+
+    // 회차 번호
+    private BooleanExpression issueNumberEq(Integer issueNumber) {
+        return issueNumber != null ? product.issueNumber.eq(issueNumber) : null;
     }
 }
