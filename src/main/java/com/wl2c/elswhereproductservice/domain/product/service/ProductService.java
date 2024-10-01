@@ -18,16 +18,10 @@ import com.wl2c.elswhereproductservice.domain.product.repository.ProductSearchRe
 import com.wl2c.elswhereproductservice.domain.product.repository.TickerSymbolRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +35,7 @@ public class ProductService {
 
     private final RepaymentEvaluationDatesService repaymentEvaluationDatesService;
     private final LikeService likeService;
+    private final DailyHotProductService dailyHotProductService;
 
     public Page<SummarizedProductDto> listByOnSale(String type, Pageable pageable) {
         Sort sort = switch (type) {
@@ -145,6 +140,15 @@ public class ProductService {
         return productSearchRepository.search(requestProductSearchDto, pageable);
     }
 
+    public List<SummarizedProductDto> searchProductByIssueNumber(Integer IssueNumber) {
+        // 각 발행사에서 회차는 유니크하지만, 다른 발행사끼리 회차 번호가 겹칠 수 있기때문에 리스트로 반환
+        List<Product> productList = productSearchRepository.searchByIssueNumber(IssueNumber);
+
+        return productList.stream()
+                .map(SummarizedProductDto::new)
+                .collect(Collectors.toList());
+    }
+
     public ResponseTodayReceivedProductIdsDto findTodayReceivedProductIds() {
         List<Product> productList = productRepository.listByCreatedAtToday();
         if (productList.isEmpty()) {
@@ -155,5 +159,30 @@ public class ProductService {
                 .map(Product::getId)
                 .toList();
         return new ResponseTodayReceivedProductIdsDto(productIdList);
+    }
+
+    /**
+     * 일일 인기 TOP5 상품 리스트 조회
+     *
+     * @return 좋아요 증감 + 조회수가 높은 상품 정보 리스트 반환
+     */
+    public List<SummarizedProductDto> getDailyTop5Products() {
+        List<Long> productIdList = dailyHotProductService.getDailyTop5Products();
+        List<Product> productList = productRepository.listByIds(productIdList);
+
+        // List<Product>를 productIdList의 순서대로 다시 정렬
+        Map<Long, Product> productMap = productList.stream()
+                .collect(Collectors.toMap(Product::getId, product -> product));
+
+        List<Product> sortedProductList = productIdList.stream()
+                .map(productMap::get)
+                .toList();
+
+        // 정렬된 Product 리스트를 SummarizedProductDto로 변환
+        List<SummarizedProductDto> summarizedProductDtos = sortedProductList.stream()
+                .map(SummarizedProductDto::new)
+                .collect(Collectors.toList());
+
+        return summarizedProductDtos;
     }
 }

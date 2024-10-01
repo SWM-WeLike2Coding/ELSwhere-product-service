@@ -49,6 +49,7 @@ public class CachedLikeServiceImpl implements LikeService {
         if (!isLiked(productId, userId)) {
             likeMemoryRepository.like(productId, userId);
             likeMemoryRepository.increaseLikeCount(productId);
+            likeMemoryRepository.increaseLikeCountDelta(productId);
         }
     }
 
@@ -58,6 +59,7 @@ public class CachedLikeServiceImpl implements LikeService {
         if (isLiked(productId, userId)) {
             likeMemoryRepository.cancelLike(productId, userId);
             likeMemoryRepository.decreaseLikeCount(productId);
+            likeMemoryRepository.decreaseLikeCountDelta(productId);
         }
     }
 
@@ -96,21 +98,10 @@ public class CachedLikeServiceImpl implements LikeService {
             Integer likeCount = likePersistenceRepository.findLikeCountByProductId(productId);
             count = (likeCount != null) ? likeCount : 0;
             likeMemoryRepository.setLikeCount(productId, count, countCacheTime);
+            likeMemoryRepository.setLikeCountDelta(productId, countCacheTime);
         }
         return count;
     }
-
-//    @Override
-//    @Transactional(readOnly = true)
-//    public List<ResponseMostLikedProductDto> mostLiked() {
-//        int count = likeMemoryRepository.getCachedMostLikedCount();
-//        if (count == -1) {
-//            List<Like> likeList = likePersistenceRepository.findMostLiked();
-//        }
-//        return likeList.stream()
-//                .map(like -> new ResponseMostLikedProductDto(like, count))
-//                .collect(Collectors.toList());
-//    }
 
     @Transactional
     public long dumpToDB() {

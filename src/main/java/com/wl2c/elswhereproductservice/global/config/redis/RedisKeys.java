@@ -4,8 +4,13 @@ public class RedisKeys {
     public static final String KEY_DELIMITER = ":";
     public static final String LIKE_KEY = "like";
     public static final String LIKE_COUNT_KEY = "likeCount";
+    public static final String LIKE_COUNT_DELTA_KEY = "likeCountDelta";
     public static final String LIKE_USERS_KEY = "likeUsers";
     public static final String LIKE_PRODUCTS_KEY = "likeProducts";
+    public static final String VIEW_KEY = "view";
+    public static final String VIEW_COUNT_KEY = "viewCount";
+    public static final String VIEW_USERS_KEY = "viewUsers";
+    public static final String VIEW_PRODUCTS_KEY = "viewProducts";
 
 
     public static String combine(Object key1, Object key2) {

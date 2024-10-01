@@ -9,6 +9,7 @@ import com.wl2c.elswhereproductservice.domain.product.model.dto.response.*;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductEquityVolatilityService;
 import com.wl2c.elswhereproductservice.domain.product.service.RepaymentEvaluationDatesService;
 import com.wl2c.elswhereproductservice.domain.product.service.ProductService;
+import com.wl2c.elswhereproductservice.domain.view.service.ViewService;
 import com.wl2c.elswhereproductservice.global.model.dto.ResponsePage;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,6 +38,7 @@ public class ProductController {
     private final ProductService productService;
     private final RepaymentEvaluationDatesService repaymentEvaluationDatesService;
     private final ProductEquityVolatilityService productEquityVolatilityService;
+    private final ViewService viewService;
 
     /**
      * 청약 중인 상품 목록
@@ -129,6 +131,7 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseSingleProductDto findOne(HttpServletRequest request,
                                             @PathVariable Long id) {
+        viewService.view(id, parseLong(request.getHeader("requestId")));
         return productService.findOne(id, parseLong(request.getHeader("requestId")));
     }
 
@@ -161,6 +164,20 @@ public class ProductController {
                                                             @ParameterObject Pageable pageable) {
         Page<SummarizedProductDto> result = productService.searchProduct(requestProductSearchDto, pageable);
         return new ResponsePage<>(result);
+    }
+
+    /**
+     * 회차 번호에 해당하는 상품 검색
+     * <p>
+     *     각 발행사에서 회차는 유니크하지만, 다른 발행사끼리 회차 번호가 겹칠 수 있기때문에 리스트로 반환합니다.
+     * </p>
+     *
+     * @param number 회차 번호
+     * @return 검색 조건에 맞는 상품 리스트
+     */
+    @GetMapping("/search/{number}")
+    public List<SummarizedProductDto> searchProductByIssueNumber(@PathVariable Integer number) {
+        return productService.searchProductByIssueNumber(number);
     }
 
     /**
@@ -221,5 +238,15 @@ public class ProductController {
     @GetMapping("/equity/volatility/{id}")
     public ResponseProductEquityVolatilityDto findProductEquityVolatilities(@PathVariable Long id) {
         return productEquityVolatilityService.findProductEquityVolatilities(id);
+    }
+
+    /**
+     * 일일 인기 TOP5 상품 리스트 조회
+     *
+     * @return 좋아요 증감 + 조회수가 높은 상품 정보 리스트 반환(개수 중복 고려)
+     */
+    @GetMapping("/hot/daily")
+    public List<SummarizedProductDto> getDailyTop5Products() {
+        return productService.getDailyTop5Products();
     }
 }
