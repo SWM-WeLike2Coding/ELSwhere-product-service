@@ -140,6 +140,15 @@ public class ProductService {
         return productSearchRepository.search(requestProductSearchDto, pageable);
     }
 
+    public List<SummarizedProductDto> searchProductByIssueNumber(Integer IssueNumber) {
+        // 각 발행사에서 회차는 유니크하지만, 다른 발행사끼리 회차 번호가 겹칠 수 있기때문에 리스트로 반환
+        List<Product> productList = productSearchRepository.searchByIssueNumber(IssueNumber);
+
+        return productList.stream()
+                .map(SummarizedProductDto::new)
+                .collect(Collectors.toList());
+    }
+
     public ResponseTodayReceivedProductIdsDto findTodayReceivedProductIds() {
         List<Product> productList = productRepository.listByCreatedAtToday();
         if (productList.isEmpty()) {

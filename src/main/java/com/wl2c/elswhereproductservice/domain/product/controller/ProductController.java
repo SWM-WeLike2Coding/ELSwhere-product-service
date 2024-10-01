@@ -167,6 +167,20 @@ public class ProductController {
     }
 
     /**
+     * 회차 번호에 해당하는 상품 검색
+     * <p>
+     *     각 발행사에서 회차는 유니크하지만, 다른 발행사끼리 회차 번호가 겹칠 수 있기때문에 리스트로 반환합니다.
+     * </p>
+     *
+     * @param number 회차 번호
+     * @return 검색 조건에 맞는 상품 리스트
+     */
+    @GetMapping("/search/{number}")
+    public List<SummarizedProductDto> searchProductByIssueNumber(@PathVariable Integer number) {
+        return productService.searchProductByIssueNumber(number);
+    }
+
+    /**
      * 오늘 받아온 상품들의 id 리스트 조회
      *
      * @return 오늘 받아온 상품들의 id 리스트
