@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.like.controller;
 
+import com.wl2c.elswhereproductservice.domain.like.model.dto.response.ResponseLikeCountDto;
 import com.wl2c.elswhereproductservice.domain.like.service.LikeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,8 +24,9 @@ public class ProductLikeController {
      * @param id 상품 id
      */
     @PostMapping("/like/{id}")
-    public void like(HttpServletRequest request, @PathVariable Long id) {
+    public ResponseLikeCountDto like(HttpServletRequest request, @PathVariable Long id) {
         likeService.like(id, parseLong(request.getHeader("requestId")));
+        return new ResponseLikeCountDto(likeService.getCountOfLikes(id));
     }
 
     /**
@@ -34,8 +36,9 @@ public class ProductLikeController {
      * @param id 상품 id
      */
     @DeleteMapping("/like/{id}")
-    public void cancelLike(HttpServletRequest request, @PathVariable Long id) {
+    public ResponseLikeCountDto cancelLike(HttpServletRequest request, @PathVariable Long id) {
         likeService.cancelLike(id, parseLong(request.getHeader("requestId")));
+        return new ResponseLikeCountDto(likeService.getCountOfLikes(id));
     }
 
     /**

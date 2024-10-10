@@ -81,13 +81,13 @@ public class ViewRedisRepository implements ViewMemoryRepository {
 
     @Override
     public void deleteAllDailyViews(LocalDate localDate, Long userId) {
-        String key = combine(RedisKeys.VIEW_KEY, LikeTarget.Product, userId, LocalDate.now());
+        String key = combine(RedisKeys.VIEW_KEY, LikeTarget.Product, userId, localDate);
         redisTemplate.delete(key);
 
-        key = combine(RedisKeys.VIEW_USERS_KEY, LikeTarget.Product, LocalDate.now());
+        key = combine(RedisKeys.VIEW_USERS_KEY, LikeTarget.Product, localDate);
         redisTemplate.opsForSet().remove(key, userId.toString());
 
-        key = combine(RedisKeys.VIEW_PRODUCTS_KEY, ViewTarget.Product, userId, LocalDate.now());
+        key = combine(RedisKeys.VIEW_PRODUCTS_KEY, ViewTarget.Product, userId, localDate);
         redisTemplate.delete(key);
     }
 
@@ -96,7 +96,7 @@ public class ViewRedisRepository implements ViewMemoryRepository {
         String key = combine(RedisKeys.VIEW_COUNT_KEY, ViewTarget.Product, localDate);
         redisTemplate.delete(key);
 
-        key = combine(RedisKeys.VIEW_USERS_KEY, LikeTarget.Product, LocalDate.now());
+        key = combine(RedisKeys.VIEW_USERS_KEY, LikeTarget.Product, localDate);
         Set<String> members = redisTemplate.opsForSet().members(key);
 
         if (members != null) {
