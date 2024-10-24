@@ -42,6 +42,7 @@ public class ProductService {
             case "latest" -> Sort.by(Sort.Order.desc("subscriptionStartDate"), Sort.Order.desc("lastModifiedAt"));
             case "knock-in" -> Sort.by(Sort.Order.asc("knockIn").nullsLast(), Sort.Order.desc("lastModifiedAt"));
             case "profit" -> Sort.by(Sort.Order.desc("yieldIfConditionsMet"), Sort.Order.desc("lastModifiedAt"));
+            case "deadline" -> Sort.by(Sort.Order.asc("subscriptionEndDate"), Sort.Order.desc("lastModifiedAt"));
             default -> null;
         };
 
@@ -60,6 +61,7 @@ public class ProductService {
             case "latest" -> Sort.by(Sort.Order.desc("subscriptionStartDate"), Sort.Order.desc("lastModifiedAt"));
             case "knock-in" -> Sort.by(Sort.Order.asc("knockIn").nullsLast(), Sort.Order.desc("lastModifiedAt"));
             case "profit" -> Sort.by(Sort.Order.desc("yieldIfConditionsMet"), Sort.Order.desc("lastModifiedAt"));
+            case "deadline" -> Sort.by(Sort.Order.desc("subscriptionEndDate"), Sort.Order.desc("lastModifiedAt"));
             default -> null;
         };
 

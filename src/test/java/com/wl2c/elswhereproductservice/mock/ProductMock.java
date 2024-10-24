@@ -4,11 +4,54 @@ import com.wl2c.elswhereproductservice.domain.product.model.MaturityEvaluationDa
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
+import com.wl2c.elswhereproductservice.util.EntityUtil;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class ProductMock {
+
+    public static Product create(Long productId) {
+        Product product = create(
+                "AA증권",
+                "1호",
+                "삼성전자 / S&P500 / KOSPI200",
+                3,
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusYears(3),
+                LocalDate.now().plusYears(3).minusDays(5),
+                MaturityEvaluationDateType.SINGLE,
+                new BigDecimal("10.423"),
+                LocalDate.now().minusDays(14),
+                LocalDate.now().minusDays(1),
+                "95-90-85-80-75-50",
+                45,
+                ProductType.STEP_DOWN,
+                ProductState.ACTIVE);
+
+        EntityUtil.injectId(Product.class, product, productId);
+
+        return product;
+    }
+
+    public static Product create() {
+        return create(
+                "AA증권",
+                "1호",
+                "삼성전자 / S&P500 / KOSPI200",
+                3,
+                LocalDate.now().minusDays(1),
+                LocalDate.now().plusYears(3),
+                LocalDate.now().plusYears(3).minusDays(5),
+                MaturityEvaluationDateType.SINGLE,
+                new BigDecimal("10.423"),
+                LocalDate.now().minusDays(14),
+                LocalDate.now().minusDays(1),
+                "95-90-85-80-75-50",
+                45,
+                ProductType.STEP_DOWN,
+                ProductState.ACTIVE);
+    }
 
     public static Product create(String issuer,
                                  String name,

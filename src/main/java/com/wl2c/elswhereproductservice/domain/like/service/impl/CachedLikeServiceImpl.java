@@ -15,6 +15,7 @@ import com.wl2c.elswhereproductservice.domain.product.service.ProductLikeMessage
 import com.wl2c.elswhereproductservice.global.error.exception.UnexpectedException;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
@@ -26,9 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeoutException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CachedLikeServiceImpl implements LikeService {
 
     private final CircuitBreakerFactory circuitBreakerFactory;
@@ -78,10 +81,18 @@ public class CachedLikeServiceImpl implements LikeService {
                     throwable -> {
                         if (throwable instanceof FeignException feignException) {
                             if (feignException.status() == 404) {
+                                log.error("productId: {}, userId: {} 해당 상품에 대한 좋아요를 누른 기록을 찾을 수 없습니다: {}", productId, userId, throwable.getMessage());
                                 return Boolean.FALSE;
                             }
                         }
-                        throw new UnexpectedException(throwable);
+
+                        if (throwable instanceof TimeoutException) {
+                            log.error("productId: {}, userId: {} 요청 시간이 초과되었습니다: {}", productId, userId, throwable.getMessage());
+                            return Boolean.FALSE;
+                        }
+
+                        log.error("productId: {}, userId: {} 예기치 않은 오류가 발생했습니다: {}", productId, userId, throwable.getMessage());
+                        return Boolean.FALSE;
                     }
             );
 
