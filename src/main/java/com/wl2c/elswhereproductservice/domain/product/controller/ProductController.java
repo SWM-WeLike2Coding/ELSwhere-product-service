@@ -44,11 +44,11 @@ public class ProductController {
      * 청약 중인 상품 목록
      * <p>
      *     해당하는 정렬 타입(type)에 맞게 문자열을 기입해주세요.
-     *     (인기순은 좋아요 작업 후, 기능 추가 예정)
      *
      *     최신순 : latest
      *     낙인순 : knock-in
      *     수익률순 : profit
+     *     청약 마감일순 : deadline
      * </p>
      *
      * @param type 정렬 타입
@@ -65,11 +65,11 @@ public class ProductController {
      * 청약 종료된 상품 목록
      * <p>
      *     해당하는 정렬 타입(type)에 맞게 문자열을 기입해주세요.
-     *     (인기순은 좋아요 작업 후, 기능 추가 예정)
      *
      *     최신순 : latest
      *     낙인순 : knock-in
      *     수익률순 : profit
+     *     청약 마감일순 : deadline
      * </p>
      *
      * @param type 정렬 타입
