@@ -1,6 +1,7 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
 import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedOnSaleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
@@ -50,14 +51,19 @@ public class ProductController {
      *     수익률순 : profit
      *     청약 마감일순 : deadline
      * </p>
+     * <p>
+     *     <br/>
+     *     스텝다운 유형의 상품에 대해서 AI가 분석한 각 상품의 safetyScore를 제공합니다. <br/>
+     *     스텝다운 유형이 아니거나 스텝다운 유형이지만 분석 정보가 없는 경우에는 null 값으로 제공됩니다. <br/>
+     * </p>
      *
      * @param type 정렬 타입
      * @return 페이징된 청약 중인 상품 목록
      */
     @GetMapping("/on-sale")
-    public ResponsePage<SummarizedProductDto> listByOnSale(@RequestParam(name = "type") String type,
-                                                            @ParameterObject Pageable pageable) {
-        Page<SummarizedProductDto> result = productService.listByOnSale(type, pageable);
+    public ResponsePage<SummarizedOnSaleProductDto> listByOnSale(@RequestParam(name = "type") String type,
+                                                                 @ParameterObject Pageable pageable) {
+        Page<SummarizedOnSaleProductDto> result = productService.listByOnSale(type, pageable);
         return new ResponsePage<>(result);
     }
 
