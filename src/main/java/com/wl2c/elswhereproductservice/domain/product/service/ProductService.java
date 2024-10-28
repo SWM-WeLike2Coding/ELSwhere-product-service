@@ -1,12 +1,17 @@
 package com.wl2c.elswhereproductservice.domain.product.service;
 
+import com.wl2c.elswhereproductservice.client.analysis.api.AnalysisServiceClient;
+import com.wl2c.elswhereproductservice.client.analysis.dto.response.ResponseAIResultDto;
 import com.wl2c.elswhereproductservice.domain.like.service.LikeService;
 import com.wl2c.elswhereproductservice.domain.product.exception.NotOnSaleProductException;
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.WrongProductSortTypeException;
+import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedOnSaleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
+import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseProductComparisonTargetDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.response.ResponseSingleProductDto;
@@ -18,9 +23,12 @@ import com.wl2c.elswhereproductservice.domain.product.repository.ProductSearchRe
 import com.wl2c.elswhereproductservice.domain.product.repository.TickerSymbolRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,6 +36,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductService {
+
+    private final AnalysisServiceClient analysisServiceClient;
+    private final CircuitBreakerFactory circuitBreakerFactory;
 
     private final ProductRepository productRepository;
     private final TickerSymbolRepository tickerSymbolRepository;
@@ -37,7 +48,7 @@ public class ProductService {
     private final LikeService likeService;
     private final DailyHotProductService dailyHotProductService;
 
-    public Page<SummarizedProductDto> listByOnSale(String type, Pageable pageable) {
+    public Page<SummarizedOnSaleProductDto> listByOnSale(String type, Pageable pageable) {
         Sort sort = switch (type) {
             case "latest" -> Sort.by(Sort.Order.desc("subscriptionStartDate"), Sort.Order.desc("lastModifiedAt"));
             case "knock-in" -> Sort.by(Sort.Order.asc("knockIn").nullsLast(), Sort.Order.desc("lastModifiedAt"));
@@ -53,7 +64,24 @@ public class ProductService {
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         Page<Product> products = productRepository.listByOnSale(type, sortedPageable);
 
-        return products.map(SummarizedProductDto::new);
+        List<Long> stepDownProductIds = products.getContent().stream()
+                .filter(product -> product.getType() == ProductType.STEP_DOWN) // STEP_DOWN 타입 필터링
+                .map(Product::getId)
+                .toList();
+        List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
+
+        // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
+        Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
+                .collect(Collectors.toMap(ResponseAIResultDto::getProductId, ResponseAIResultDto::getSafetyScore));
+
+        List<SummarizedOnSaleProductDto> summarizedProducts = products.getContent().stream()
+                .map(product -> {
+                    BigDecimal safetyScore = productSafetyScoreMap.getOrDefault(product.getId(), null);
+                    return new SummarizedOnSaleProductDto(product, safetyScore);
+                })
+                .toList();
+
+        return new PageImpl<>(summarizedProducts, pageable, products.getTotalElements());
     }
 
     public Page<SummarizedProductDto> listByEndSale(String type, Pageable pageable) {
@@ -186,5 +214,11 @@ public class ProductService {
                 .collect(Collectors.toList());
 
         return summarizedProductDtos;
+    }
+
+    private List<ResponseAIResultDto> listStepDownAIResult(List<Long> stepDownProductIds) {
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("aiResultCircuitBreaker");
+        return circuitBreaker.run(() -> analysisServiceClient.getAIResultList(new RequestProductIdListDto(stepDownProductIds)),
+                throwable -> new ArrayList<>());
     }
 }
