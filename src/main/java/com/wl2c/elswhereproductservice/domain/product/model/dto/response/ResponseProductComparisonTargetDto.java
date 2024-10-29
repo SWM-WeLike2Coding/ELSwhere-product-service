@@ -46,7 +46,10 @@ public class ResponseProductComparisonTargetDto {
     @Schema(description = "청약 마감일", example = "2024-06-21")
     private final LocalDate subscriptionEndDate;
 
-    public ResponseProductComparisonTargetDto(Product product) {
+    @Schema(description = "AI가 판단한 상품 안전도", example = "0.89")
+    private final BigDecimal safetyScore;
+
+    public ResponseProductComparisonTargetDto(Product product, BigDecimal safetyScore) {
         this.id = product.getId();
         this.issuer = product.getIssuer();
         this.name = product.getName();
@@ -59,5 +62,6 @@ public class ResponseProductComparisonTargetDto {
         this.maximumLossRate = product.getMaximumLossRate();
         this.subscriptionStartDate = product.getSubscriptionStartDate();
         this.subscriptionEndDate = product.getSubscriptionEndDate();
+        this.safetyScore = safetyScore;
     }
 }

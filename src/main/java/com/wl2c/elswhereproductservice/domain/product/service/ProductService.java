@@ -72,7 +72,11 @@ public class ProductService {
 
         // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
         Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
-                .collect(Collectors.toMap(ResponseAIResultDto::getProductId, ResponseAIResultDto::getSafetyScore));
+                .collect(Collectors.toMap(
+                        ResponseAIResultDto::getProductId,
+                        ResponseAIResultDto::getSafetyScore,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
 
         List<SummarizedOnSaleProductDto> summarizedProducts = products.getContent().stream()
                 .map(product -> {
@@ -146,17 +150,41 @@ public class ProductService {
     public Map<String, List<ResponseProductComparisonTargetDto>> findComparisonTargets(Long id) {
         Map<String, List<ResponseProductComparisonTargetDto>> result = new HashMap<>();
 
+        // 타겟 상품
         Product product = productRepository.isItProductOnSale(id).orElseThrow(NotOnSaleProductException::new);
         List<TickerSymbol> tickerSymbolEntityList = tickerSymbolRepository.findTickerSymbolList(id);
         List<String> tickerSymbolList = tickerSymbolEntityList.stream()
                 .map(TickerSymbol::getTickerSymbol)
                 .toList();
-        List<ResponseProductComparisonTargetDto> target = new ArrayList<>();
-        target.add(new ResponseProductComparisonTargetDto(product));
 
+        // 비교 상품
         List<Product> productComparisonResults = productRepository.findComparisonResults(id, product.getEquityCount(), tickerSymbolList);
+
+        // 타겟 및 비교 상품들 중 STEP_DOWN 타입 필터링
+        List<Long> stepDownProductIds = new ArrayList<>(productComparisonResults.stream()
+                .filter(productComparisonResult -> productComparisonResult.getType() == ProductType.STEP_DOWN)
+                .map(Product::getId)
+                .toList());
+        if (product.getType() == ProductType.STEP_DOWN)
+            stepDownProductIds.add(product.getId());
+        List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
+
+        // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
+        Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
+                .collect(Collectors.toMap(
+                        ResponseAIResultDto::getProductId,
+                        ResponseAIResultDto::getSafetyScore,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
+
+        List<ResponseProductComparisonTargetDto> target = new ArrayList<>();
+        target.add(new ResponseProductComparisonTargetDto(product, productSafetyScoreMap.getOrDefault(product.getId(), null)));
+
         List<ResponseProductComparisonTargetDto> comparisonResults = productComparisonResults.stream()
-                                        .map(ResponseProductComparisonTargetDto::new)
+                                        .map(productComparisonResult -> new ResponseProductComparisonTargetDto(
+                                                productComparisonResult,
+                                                productSafetyScoreMap.getOrDefault(productComparisonResult.getId(), null)
+                                        ))
                                         .toList();
 
         result.put("target", target);
