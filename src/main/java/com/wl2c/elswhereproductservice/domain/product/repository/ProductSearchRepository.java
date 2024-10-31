@@ -3,19 +3,14 @@ package com.wl2c.elswhereproductservice.domain.product.repository;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.*;
-import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.UnderlyingAssetType;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.list.QSummarizedProductDto;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
@@ -45,11 +40,10 @@ public class ProductSearchRepository {
                 .fetch();
     }
 
-    public Page<SummarizedProductDto> search(RequestProductSearchDto requestDto,
-                                                 Pageable pageable) {
-        List<SummarizedProductDto> content = queryFactory
-                .select(new QSummarizedProductDto(product))
-                .from(product)
+    public List<Product> search(RequestProductSearchDto requestDto,
+                                Pageable pageable) {
+        return queryFactory
+                .selectFrom(product)
                 .where(
                         productNameContain(requestDto.getProductName()),
                         equityNamesIn(requestDto.getEquityNames()),
@@ -70,28 +64,6 @@ public class ProductSearchRepository {
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
-
-        JPQLQuery<Long> countQuery = queryFactory
-                .select(product.count())
-                .from(product)
-                .where(
-                        productNameContain(requestDto.getProductName()),
-                        equityNamesIn(requestDto.getEquityNames()),
-                        equityCountEq(requestDto.getEquityCount()),
-                        issuerEq(requestDto.getIssuer()),
-                        knockInLoe(requestDto.getMaxKnockIn()),
-                        yieldIfConditionsMetGoe(requestDto.getMinYieldIfConditionsMet()),
-                        initialRedemptionBarrierEq(requestDto.getInitialRedemptionBarrier()),
-                        maturityRedemptionBarrierEq(requestDto.getMaturityRedemptionBarrier()),
-                        subscriptionPeriodEq(requestDto.getSubscriptionPeriod()),
-                        redemptionIntervalEq(requestDto.getRedemptionInterval()),
-                        equityTypeEq(requestDto.getEquityType()),
-                        typeEq(requestDto.getType()),
-                        periodBetween(requestDto.getSubscriptionStartDate(), requestDto.getSubscriptionEndDate()),
-                        product.productState.eq(ProductState.ACTIVE)
-                );
-
-        return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
     }
 
     // 상품 명 (일부 가능)

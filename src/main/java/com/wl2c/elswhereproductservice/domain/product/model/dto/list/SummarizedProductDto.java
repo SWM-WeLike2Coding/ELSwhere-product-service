@@ -9,6 +9,8 @@ import lombok.Getter;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static com.wl2c.elswhereproductservice.domain.product.model.entity.QProduct.product;
+
 @Getter
 public class SummarizedProductDto {
     @Schema(description = "상품 id", example = "1")
@@ -38,8 +40,10 @@ public class SummarizedProductDto {
     @Schema(description = "청약 마감일", example = "2024-06-21")
     private final LocalDate subscriptionEndDate;
 
-    @QueryProjection
-    public SummarizedProductDto(Product product) {
+    @Schema(description = "AI가 판단한 스텝다운 상품 안전도", example = "0.89")
+    private final BigDecimal safetyScore;
+
+    public SummarizedProductDto(Product product, BigDecimal safetyScore) {
         this.id = product.getId();
         this.issuer = product.getIssuer();
         this.name = product.getName();
@@ -49,5 +53,6 @@ public class SummarizedProductDto {
         this.knockIn = product.getKnockIn();
         this.subscriptionStartDate = product.getSubscriptionStartDate();
         this.subscriptionEndDate = product.getSubscriptionEndDate();
+        this.safetyScore = safetyScore;
     }
 }
