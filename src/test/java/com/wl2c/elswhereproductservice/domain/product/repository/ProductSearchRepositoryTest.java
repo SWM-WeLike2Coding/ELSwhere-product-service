@@ -4,7 +4,6 @@ import com.wl2c.elswhereproductservice.domain.product.model.MaturityEvaluationDa
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.UnderlyingAssetType;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductSearchDto;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.EarlyRepaymentEvaluationDates;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
@@ -21,12 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -157,10 +154,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(1);
     }
 
     @Test
@@ -172,10 +169,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.size()).isEqualTo(3);
     }
 
     @Test
@@ -187,10 +184,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.size()).isEqualTo(1);
     }
 
     @Test
@@ -202,10 +199,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.size()).isEqualTo(3);
     }
 
     @Test
@@ -217,10 +214,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.size()).isEqualTo(3);
     }
 
     @Test
@@ -232,11 +229,11 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().stream().anyMatch(product -> product.getName().equals("BB증권 2호"))).isTrue();
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.stream().anyMatch(product -> product.getName().equals("BB증권 2호"))).isTrue();
     }
 
     @Test
@@ -248,10 +245,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.size()).isEqualTo(3);
     }
 
     @Test
@@ -263,10 +260,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(2);
+        assertThat(result.size()).isEqualTo(2);
     }
 
     @Test
@@ -279,10 +276,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(3);
+        assertThat(result.size()).isEqualTo(3);
     }
 
     @Test
@@ -296,11 +293,11 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getEquities()).contains("삼성전자", "S&P500");
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getEquities()).contains("삼성전자", "S&P500");
     }
 
     @Test
@@ -312,11 +309,11 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getEquities()).contains("Tesla", "삼성전자", "NVIDIA");
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getEquities()).contains("Tesla", "삼성전자", "NVIDIA");
     }
 
     @Test
@@ -328,11 +325,11 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getEquities()).contains("S&P500", "HSCEI", "KOSPI200");
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getEquities()).contains("S&P500", "HSCEI", "KOSPI200");
     }
 
     @Test
@@ -344,11 +341,11 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getEquities()).contains("삼성전자", "S&P500", "KOSPI200");
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getEquities()).contains("삼성전자", "S&P500", "KOSPI200");
     }
 
     @Test
@@ -369,10 +366,10 @@ public class ProductSearchRepositoryTest {
                 .build();
 
         // when
-        Page<SummarizedProductDto> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
+        List<Product> result = productSearchRepository.search(searchDto, PageRequest.of(0, Integer.MAX_VALUE));
 
         // then
-        assertThat(result.getTotalElements()).isEqualTo(1);
-        assertThat(result.getContent().get(0).getEquities()).contains("삼성전자", "S&P500", "KOSPI200");
+        assertThat(result.size()).isEqualTo(1);
+        assertThat(result.get(0).getEquities()).contains("삼성전자", "S&P500", "KOSPI200");
     }
 }
