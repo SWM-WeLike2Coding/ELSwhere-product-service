@@ -110,12 +110,32 @@ public class ProductService {
 
     public List<SummarizedProductDto> listByProductIds(List<Long> productIdList) {
         log.info("Before adding the products data");
-        List<Product> productList = productRepository.listByIds(productIdList);
+        List<Product> products = productRepository.listByIds(productIdList);
         log.info("After adding the products data");
 
-        return productList.stream()
-                .map(product -> new SummarizedProductDto(product, null))
-                .collect(Collectors.toList());
+        List<Long> stepDownProductIds = products.stream()
+                .filter(product -> ((product.getType() == ProductType.STEP_DOWN) &&
+                                (!product.getSubscriptionEndDate().isBefore(LocalDate.now()))
+                        )
+                ) // STEP_DOWN 타입 및 청약 중인 상품 필터링
+                .map(Product::getId)
+                .toList();
+        List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
+
+        // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
+        Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
+                .collect(Collectors.toMap(
+                        ResponseAIResultDto::getProductId,
+                        ResponseAIResultDto::getSafetyScore,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
+
+        return products.stream()
+                .map(product -> {
+                    BigDecimal safetyScore = productSafetyScoreMap.getOrDefault(product.getId(), null);
+                    return new SummarizedProductDto(product, safetyScore);
+                })
+                .toList();
     }
 
     public List<SummarizedProductForHoldingDto> holdingListByProductIds(List<Long> productIdList) {
