@@ -92,10 +92,14 @@ public class ResponseSingleProductDto {
     @Schema(description = "내가 좋아요를 눌렀는지?", example = "false")
     private final boolean isLiked;
 
+    @Schema(description = "AI가 판단한 스텝다운 상품 안전도", example = "0.89")
+    private final BigDecimal safetyScore;
+
     public ResponseSingleProductDto(Product product,
                                     Map<String, String> equityTickerSymbols,
                                     int likes,
-                                    boolean isLiked) {
+                                    boolean isLiked,
+                                    BigDecimal safetyScore) {
         this.id = product.getId();
         this.issuer = product.getIssuer();
         this.name = product.getName();
@@ -122,5 +126,6 @@ public class ResponseSingleProductDto {
         this.equityTickerSymbols = equityTickerSymbols;
         this.likes = likes;
         this.isLiked = isLiked;
+        this.safetyScore = safetyScore;
     }
 }
