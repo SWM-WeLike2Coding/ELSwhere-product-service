@@ -2,13 +2,13 @@ package com.wl2c.elswhereproductservice.domain.product.service;
 
 import com.wl2c.elswhereproductservice.client.analysis.api.AnalysisServiceClient;
 import com.wl2c.elswhereproductservice.client.analysis.dto.response.ResponseAIResultDto;
+import com.wl2c.elswhereproductservice.client.analysis.dto.response.ResponseAISingleResultDto;
 import com.wl2c.elswhereproductservice.domain.like.service.LikeService;
 import com.wl2c.elswhereproductservice.domain.product.exception.NotOnSaleProductException;
 import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.WrongProductSortTypeException;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedOnSaleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
@@ -29,6 +29,7 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,7 @@ public class ProductService {
     private final LikeService likeService;
     private final DailyHotProductService dailyHotProductService;
 
-    public Page<SummarizedOnSaleProductDto> listByOnSale(String type, Pageable pageable) {
+    public Page<SummarizedProductDto> listByOnSale(String type, Pageable pageable) {
         Sort sort = switch (type) {
             case "latest" -> Sort.by(Sort.Order.desc("subscriptionStartDate"), Sort.Order.desc("lastModifiedAt"));
             case "knock-in" -> Sort.by(Sort.Order.asc("knockIn").nullsLast(), Sort.Order.desc("lastModifiedAt"));
@@ -78,10 +79,10 @@ public class ProductService {
                         (existing, replacement) -> existing // 중복된 경우 기존 값 사용
                 ));
 
-        List<SummarizedOnSaleProductDto> summarizedProducts = products.getContent().stream()
+        List<SummarizedProductDto> summarizedProducts = products.getContent().stream()
                 .map(product -> {
                     BigDecimal safetyScore = productSafetyScoreMap.getOrDefault(product.getId(), null);
-                    return new SummarizedOnSaleProductDto(product, safetyScore);
+                    return new SummarizedProductDto(product, safetyScore);
                 })
                 .toList();
 
@@ -104,7 +105,7 @@ public class ProductService {
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), sort);
         Page<Product> products = productRepository.listByEndSale(type, sortedPageable);
 
-        return products.map(SummarizedProductDto::new);
+        return products.map(product -> new SummarizedProductDto(product, null));
     }
 
     public List<SummarizedProductDto> listByProductIds(List<Long> productIdList) {
@@ -113,7 +114,7 @@ public class ProductService {
         log.info("After adding the products data");
 
         return productList.stream()
-                .map(SummarizedProductDto::new)
+                .map(product -> new SummarizedProductDto(product, null))
                 .collect(Collectors.toList());
     }
 
@@ -144,7 +145,14 @@ public class ProductService {
         boolean isLiked = likeService.isLiked(productId, userId);
         int likeCount = likeService.getCountOfLikes(productId);
 
-        return new ResponseSingleProductDto(product, equityTickerSymbols, likeCount, isLiked);
+        ResponseAISingleResultDto responseAISingleResultDto = null;
+        if (product.getType() == ProductType.STEP_DOWN && !product.getSubscriptionEndDate().isBefore(LocalDate.now())) {
+            responseAISingleResultDto = stepDownAIResult(productId);
+        }
+
+        if (responseAISingleResultDto == null)
+            return new ResponseSingleProductDto(product, equityTickerSymbols, likeCount, isLiked, null);
+        return new ResponseSingleProductDto(product, equityTickerSymbols, likeCount, isLiked, responseAISingleResultDto.getSafetyScore());
     }
 
     public Map<String, List<ResponseProductComparisonTargetDto>> findComparisonTargets(Long id) {
@@ -195,15 +203,61 @@ public class ProductService {
 
     public Page<SummarizedProductDto> searchProduct(RequestProductSearchDto requestProductSearchDto,
                                                     Pageable pageable) {
-        return productSearchRepository.search(requestProductSearchDto, pageable);
+        List<Product> products = productSearchRepository.search(requestProductSearchDto, pageable);
+
+        List<Long> stepDownProductIds = products.stream()
+                .filter(product -> ((product.getType() == ProductType.STEP_DOWN) &&
+                                (!product.getSubscriptionEndDate().isBefore(LocalDate.now()))
+                        )
+                ) // STEP_DOWN 타입 및 청약 중인 상품 필터링
+                .map(Product::getId)
+                .toList();
+        List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
+
+        // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
+        Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
+                .collect(Collectors.toMap(
+                        ResponseAIResultDto::getProductId,
+                        ResponseAIResultDto::getSafetyScore,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
+
+        List<SummarizedProductDto> summarizedProducts = products.stream()
+                .map(product -> {
+                    BigDecimal safetyScore = productSafetyScoreMap.getOrDefault(product.getId(), null);
+                    return new SummarizedProductDto(product, safetyScore);
+                })
+                .toList();
+
+        return new PageImpl<>(summarizedProducts, pageable, summarizedProducts.size());
     }
 
     public List<SummarizedProductDto> searchProductByIssueNumber(Integer IssueNumber) {
         // 각 발행사에서 회차는 유니크하지만, 다른 발행사끼리 회차 번호가 겹칠 수 있기때문에 리스트로 반환
         List<Product> productList = productSearchRepository.searchByIssueNumber(IssueNumber);
 
+        List<Long> stepDownProductIds = productList.stream()
+                .filter(product -> ((product.getType() == ProductType.STEP_DOWN) &&
+                                    (!product.getSubscriptionEndDate().isBefore(LocalDate.now()))
+                        )
+                ) // STEP_DOWN 타입 및 청약 중인 상품 필터링
+                .map(Product::getId)
+                .toList();
+        List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
+
+        // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
+        Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
+                .collect(Collectors.toMap(
+                        ResponseAIResultDto::getProductId,
+                        ResponseAIResultDto::getSafetyScore,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
+
         return productList.stream()
-                .map(SummarizedProductDto::new)
+                .map(product -> {
+                    BigDecimal safetyScore = productSafetyScoreMap.getOrDefault(product.getId(), null);
+                    return new SummarizedProductDto(product, safetyScore);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -236,17 +290,41 @@ public class ProductService {
                 .map(productMap::get)
                 .toList();
 
-        // 정렬된 Product 리스트를 SummarizedProductDto로 변환
-        List<SummarizedProductDto> summarizedProductDtos = sortedProductList.stream()
-                .map(SummarizedProductDto::new)
-                .collect(Collectors.toList());
+        List<Long> stepDownProductIds = productList.stream()
+                .filter(product -> ((product.getType() == ProductType.STEP_DOWN) &&
+                                (!product.getSubscriptionEndDate().isBefore(LocalDate.now()))
+                        )
+                ) // STEP_DOWN 타입 및 청약 중인 상품 필터링
+                .map(Product::getId)
+                .toList();
+        List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
 
-        return summarizedProductDtos;
+        // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
+        Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
+                .collect(Collectors.toMap(
+                        ResponseAIResultDto::getProductId,
+                        ResponseAIResultDto::getSafetyScore,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
+
+        // 정렬된 Product 리스트를 SummarizedProductDto로 변환 후 반환
+        return sortedProductList.stream()
+                .map(product -> {
+                    BigDecimal safetyScore = productSafetyScoreMap.getOrDefault(product.getId(), null);
+                    return new SummarizedProductDto(product, safetyScore);
+                })
+                .collect(Collectors.toList());
     }
 
     private List<ResponseAIResultDto> listStepDownAIResult(List<Long> stepDownProductIds) {
-        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("aiResultCircuitBreaker");
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("aiResultListCircuitBreaker");
         return circuitBreaker.run(() -> analysisServiceClient.getAIResultList(new RequestProductIdListDto(stepDownProductIds)),
                 throwable -> new ArrayList<>());
+    }
+
+    private ResponseAISingleResultDto stepDownAIResult(Long productId) {
+        CircuitBreaker circuitBreaker = circuitBreakerFactory.create("aiResultCircuitBreaker");
+        return circuitBreaker.run(() -> analysisServiceClient.getAIResult(productId),
+                throwable -> null);
     }
 }

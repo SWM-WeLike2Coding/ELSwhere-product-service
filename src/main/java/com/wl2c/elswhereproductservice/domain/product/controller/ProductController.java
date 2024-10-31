@@ -1,7 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
 import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
-import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedOnSaleProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.request.RequestProductIdListDto;
@@ -61,9 +60,9 @@ public class ProductController {
      * @return 페이징된 청약 중인 상품 목록
      */
     @GetMapping("/on-sale")
-    public ResponsePage<SummarizedOnSaleProductDto> listByOnSale(@RequestParam(name = "type") String type,
+    public ResponsePage<SummarizedProductDto> listByOnSale(@RequestParam(name = "type") String type,
                                                                  @ParameterObject Pageable pageable) {
-        Page<SummarizedOnSaleProductDto> result = productService.listByOnSale(type, pageable);
+        Page<SummarizedProductDto> result = productService.listByOnSale(type, pageable);
         return new ResponsePage<>(result);
     }
 
