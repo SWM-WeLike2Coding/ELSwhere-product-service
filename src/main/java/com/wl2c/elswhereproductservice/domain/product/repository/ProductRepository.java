@@ -17,6 +17,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "order by case when :sortType = 'knock-in' and p.knockIn is null then 1 else 0 end ")
     Page<Product> listByOnSale(@Param("sortType") String sortType, Pageable pageable);
 
+    @Query("select p from Product p " +
+            "where p.productState = 'ACTIVE' and p.subscriptionEndDate >= CURRENT_DATE and p.type = 'STEP_DOWN' ")
+    List<Product> listByOnSaleAndStepDown();
+
     @Query("select p from Product p where p.productState = 'ACTIVE' and p.id = :id and p.subscriptionEndDate >= CURRENT_DATE ")
     Optional<Product> isItProductOnSale(@Param("id") Long id);
 
