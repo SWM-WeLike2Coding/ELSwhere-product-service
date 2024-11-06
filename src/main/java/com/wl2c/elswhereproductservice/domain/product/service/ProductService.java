@@ -117,10 +117,6 @@ public class ProductService {
         List<Long> stepDownProductIds = onSaleStepDownProducts.stream()
                 .map(Product::getId)
                 .toList();
-        for (Long id : stepDownProductIds) {
-            System.out.println(id + " ");
-        }
-        System.out.println();
 
         List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
         if (responseStepDownAIResultDtos.isEmpty())
