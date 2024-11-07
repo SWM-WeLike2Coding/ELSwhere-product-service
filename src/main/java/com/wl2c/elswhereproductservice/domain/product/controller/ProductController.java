@@ -1,5 +1,6 @@
 package com.wl2c.elswhereproductservice.domain.product.controller;
 
+import com.wl2c.elswhereproductservice.domain.product.exception.OnSaleProductNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
@@ -61,9 +62,31 @@ public class ProductController {
      */
     @GetMapping("/on-sale")
     public ResponsePage<SummarizedProductDto> listByOnSale(@RequestParam(name = "type") String type,
-                                                                 @ParameterObject Pageable pageable) {
+                                                           @ParameterObject Pageable pageable) {
         Page<SummarizedProductDto> result = productService.listByOnSale(type, pageable);
         return new ResponsePage<>(result);
+    }
+
+    /**
+     * AI가 추천하는 청약 중인 상품 목록
+     * <p>
+     *     safetyScore 내림차순으로 AI가 추천하는 청약 중인 상품 목록을 제공합니다.<br/>
+     *     추천하는 조건에 만족하는 상품이 존재하지 않는다면 빈 리스트를 반환합니다.
+     * </p>
+     *
+     * @return AI가 추천하는 청약 중인 상품 목록
+     */
+    @GetMapping("/on-sale/ai/recommendation")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "AI가 추천하는 청약 중인 상품 목록",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = SummarizedProductDto.class, type = "array"))),
+            @ApiResponse(responseCode = "404", description = "청약 중인 상품이 존재하지 않습니다.",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = OnSaleProductNotFoundException.class))),
+    })
+    public List<SummarizedProductDto> aiRecommendationListByOnSale() {
+        return productService.aiRecommendationListByOnSale();
     }
 
     /**

@@ -4,10 +4,7 @@ import com.wl2c.elswhereproductservice.client.analysis.api.AnalysisServiceClient
 import com.wl2c.elswhereproductservice.client.analysis.dto.response.ResponseAIResultDto;
 import com.wl2c.elswhereproductservice.client.analysis.dto.response.ResponseAISingleResultDto;
 import com.wl2c.elswhereproductservice.domain.like.service.LikeService;
-import com.wl2c.elswhereproductservice.domain.product.exception.NotOnSaleProductException;
-import com.wl2c.elswhereproductservice.domain.product.exception.ProductNotFoundException;
-import com.wl2c.elswhereproductservice.domain.product.exception.TodayReceivedProductsNotFoundException;
-import com.wl2c.elswhereproductservice.domain.product.exception.WrongProductSortTypeException;
+import com.wl2c.elswhereproductservice.domain.product.exception.*;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductDto;
 import com.wl2c.elswhereproductservice.domain.product.model.dto.list.SummarizedProductForHoldingDto;
@@ -23,6 +20,7 @@ import com.wl2c.elswhereproductservice.domain.product.repository.ProductSearchRe
 import com.wl2c.elswhereproductservice.domain.product.repository.TickerSymbolRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
 import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.data.domain.*;
@@ -37,6 +35,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ProductService {
+
+    @Value("${app.product.safety-score.boundary}")
+    private BigDecimal safetyScoreBoundary;
 
     private final AnalysisServiceClient analysisServiceClient;
     private final CircuitBreakerFactory circuitBreakerFactory;
@@ -106,6 +107,39 @@ public class ProductService {
         Page<Product> products = productRepository.listByEndSale(type, sortedPageable);
 
         return products.map(product -> new SummarizedProductDto(product, null));
+    }
+
+    public List<SummarizedProductDto> aiRecommendationListByOnSale() {
+        List<Product> onSaleStepDownProducts = productRepository.listByOnSaleAndStepDown();
+        if (onSaleStepDownProducts.isEmpty())
+            throw new OnSaleProductNotFoundException();
+
+        List<Long> stepDownProductIds = onSaleStepDownProducts.stream()
+                .map(Product::getId)
+                .toList();
+
+        List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
+        if (responseStepDownAIResultDtos.isEmpty())
+            return new ArrayList<>();
+
+        // AI 결과 리스트에서 productId를 key로 하는 Map으로 변환
+        Map<Long, BigDecimal> productSafetyScoreMap = responseStepDownAIResultDtos.stream()
+                .filter(dto -> dto.getSafetyScore() != null && dto.getSafetyScore().compareTo(safetyScoreBoundary) >= 0)
+                .collect(Collectors.toMap(
+                        ResponseAIResultDto::getProductId,
+                        ResponseAIResultDto::getSafetyScore,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
+
+        return onSaleStepDownProducts.stream()
+                .filter(product -> productSafetyScoreMap.containsKey(product.getId()))
+                .map(product -> {
+                    BigDecimal safetyScore = productSafetyScoreMap.get(product.getId());
+                    return new SummarizedProductDto(product, safetyScore);
+                })
+                .sorted(Comparator.comparing(SummarizedProductDto::getSafetyScore, Comparator.nullsLast(Comparator.reverseOrder()))) // safetyScore 기준 내림차순 정렬
+                .toList();
+
     }
 
     public List<SummarizedProductDto> listByProductIds(List<Long> productIdList) {
