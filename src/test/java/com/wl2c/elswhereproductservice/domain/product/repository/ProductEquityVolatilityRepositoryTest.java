@@ -68,6 +68,7 @@ public class ProductEquityVolatilityRepositoryTest {
                 "95-90-85-80-75-50",
                 45,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.MIX,
                 ProductState.ACTIVE);
 
         tickerSymbolRepository.saveAll(tickerSymbols);

@@ -3,6 +3,7 @@ package com.wl2c.elswhereproductservice.domain.product.repository;
 import com.wl2c.elswhereproductservice.domain.product.model.MaturityEvaluationDateType;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
+import com.wl2c.elswhereproductservice.domain.product.model.UnderlyingAssetType;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import com.wl2c.elswhereproductservice.mock.ProductMock;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,7 @@ public class ProductRepositoryTest {
                 "95-90-85-80-75-50",
                 45,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.MIX,
                 ProductState.ACTIVE);
 
         product2 = ProductMock.create(
@@ -65,6 +67,7 @@ public class ProductRepositoryTest {
                 "95-90-80-75-70-65",
                 40,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.MIX,
                 ProductState.ACTIVE);
 
         productRepository.save(product1);
