@@ -3,6 +3,7 @@ package com.wl2c.elswhereproductservice.mock;
 import com.wl2c.elswhereproductservice.domain.product.model.MaturityEvaluationDateType;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductState;
 import com.wl2c.elswhereproductservice.domain.product.model.ProductType;
+import com.wl2c.elswhereproductservice.domain.product.model.UnderlyingAssetType;
 import com.wl2c.elswhereproductservice.domain.product.model.entity.Product;
 import com.wl2c.elswhereproductservice.util.EntityUtil;
 
@@ -27,6 +28,7 @@ public class ProductMock {
                 "95-90-85-80-75-50",
                 45,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.MIX,
                 ProductState.ACTIVE);
 
         EntityUtil.injectId(Product.class, product, productId);
@@ -50,6 +52,7 @@ public class ProductMock {
                 "95-90-85-80-75-50",
                 45,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.MIX,
                 ProductState.ACTIVE);
     }
 
@@ -67,6 +70,7 @@ public class ProductMock {
                                  String productInfo,
                                  Integer knockIn,
                                  ProductType productType,
+                                 UnderlyingAssetType underlyingAssetType,
                                  ProductState productState) {
         return Product.builder()
                 .issuer(issuer)
@@ -83,6 +87,7 @@ public class ProductMock {
                 .productInfo(productInfo)
                 .knockIn(knockIn)
                 .productType(productType)
+                .underlyingAssetType(underlyingAssetType)
                 .productState(productState)
                 .maximumLossRate(BigDecimal.valueOf(100))
                 .productFullInfo("")

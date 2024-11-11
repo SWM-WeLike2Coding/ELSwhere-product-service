@@ -73,6 +73,7 @@ class ProductEquityVolatilityServiceTest {
                 "95-90-85-80-75-50",
                 45,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.MIX,
                 ProductState.ACTIVE);
 
         List<ProductTickerSymbol> productTickerSymbolList = ProductTickerSymbolMock.createList(product,

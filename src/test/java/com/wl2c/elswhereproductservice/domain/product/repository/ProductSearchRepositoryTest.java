@@ -82,6 +82,7 @@ public class ProductSearchRepositoryTest {
                 "95-90-85-80-75-50",
                 45,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.MIX,
                 ProductState.ACTIVE);
 
         product2 = ProductMock.create(
@@ -99,6 +100,7 @@ public class ProductSearchRepositoryTest {
                 "95-90-80-75-70-65",
                 40,
                 ProductType.STEP_DOWN,
+                UnderlyingAssetType.INDEX,
                 ProductState.ACTIVE);
 
         product3 = ProductMock.create(
@@ -116,6 +118,7 @@ public class ProductSearchRepositoryTest {
                 "95-90(85)-80-75-70-65",
                 50,
                 ProductType.LIZARD,
+                UnderlyingAssetType.STOCK,
                 ProductState.ACTIVE);
 
         tickerSymbolRepository.saveAll(tickerSymbols);

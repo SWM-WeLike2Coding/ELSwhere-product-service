@@ -243,51 +243,7 @@ public class ProductSearchRepository {
 
     // 기초자산 유형
     private BooleanExpression equityTypeEq(UnderlyingAssetType type) {
-        List<Long> result = new ArrayList<>();
-
-        if (type != null) {
-            if (type == UnderlyingAssetType.INDEX || type == UnderlyingAssetType.STOCK) {
-                List<Tuple> tmp = queryFactory
-                        .select(productTickerSymbol.product.id, productTickerSymbol.product.id.count())
-                        .from(productTickerSymbol)
-                        .join(productTickerSymbol.tickerSymbol, tickerSymbol1)
-                        .where(productTickerSymbol.tickerSymbol.underlyingAssetType.eq(type))
-                        .groupBy(productTickerSymbol.product.id)
-                        .fetch();
-
-                BooleanBuilder predicate = new BooleanBuilder();
-                for (Tuple tuple : tmp) {
-                    Long productId = tuple.get(productTickerSymbol.product.id);
-                    Long count = tuple.get(productTickerSymbol.product.id.count());
-
-                    predicate.or(
-                            product.id.eq(productId).and(product.equityCount.eq(count.intValue()))
-                    );
-                }
-
-                result = queryFactory
-                        .select(product.id)
-                        .from(product)
-                        .where(predicate)
-                        .groupBy(product.id)
-                        .fetch();
-                return product.id.in(result);
-
-            } else if (type.equals(UnderlyingAssetType.MIX)) {
-                result = queryFactory
-                        .select(productTickerSymbol.product.id)
-                        .from(productTickerSymbol)
-                        .join(productTickerSymbol.tickerSymbol, tickerSymbol1)
-                        .where(productTickerSymbol.tickerSymbol.underlyingAssetType.in(UnderlyingAssetType.STOCK, UnderlyingAssetType.INDEX))
-                        .groupBy(productTickerSymbol.product.id)
-                        .having(
-                                productTickerSymbol.tickerSymbol.underlyingAssetType.countDistinct().eq(2L)
-                        )
-                        .fetch();
-            }
-            return product.id.in(result);
-        }
-        return null;
+        return type != null ? product.underlyingAssetType.eq(type) : null;
     }
 
     // 상품 유형
