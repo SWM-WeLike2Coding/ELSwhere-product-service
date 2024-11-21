@@ -39,6 +39,12 @@ public class ProductService {
     @Value("${app.product.safety-score.boundary}")
     private BigDecimal safetyScoreBoundary;
 
+    @Value("${app.product.linear-equation.slope}")
+    private String slope;
+
+    @Value("${app.product.linear-equation.y-intercept}")
+    private String yIntercept;
+
     private final AnalysisServiceClient analysisServiceClient;
     private final CircuitBreakerFactory circuitBreakerFactory;
 
@@ -117,6 +123,12 @@ public class ProductService {
         List<Long> stepDownProductIds = onSaleStepDownProducts.stream()
                 .map(Product::getId)
                 .toList();
+        Map<Long, BigDecimal> stepDownProductYields = onSaleStepDownProducts.stream()
+                .collect(Collectors.toMap(
+                        Product::getId,
+                        Product::getYieldIfConditionsMet,
+                        (existing, replacement) -> existing // 중복된 경우 기존 값 사용
+                ));
 
         List<ResponseAIResultDto> responseStepDownAIResultDtos = listStepDownAIResult(stepDownProductIds);
         if (responseStepDownAIResultDtos.isEmpty())
@@ -132,7 +144,21 @@ public class ProductService {
                 ));
 
         return onSaleStepDownProducts.stream()
-                .filter(product -> productSafetyScoreMap.containsKey(product.getId()))
+                .filter(product -> {
+                    Long productId = product.getId();
+                    BigDecimal safetyScore = productSafetyScoreMap.get(productId);
+
+                    // safetyScore가 null이면 필터에서 제외
+                    if (safetyScore == null) {
+                        return false;
+                    }
+
+                    // 방정식 계산
+                    BigDecimal y = safetyScore.multiply(new BigDecimal(slope)).add(new BigDecimal(yIntercept));
+
+                    BigDecimal threshold = stepDownProductYields.get(productId);
+                    return threshold != null && y.compareTo(threshold) >= 0;
+                })
                 .map(product -> {
                     BigDecimal safetyScore = productSafetyScoreMap.get(product.getId());
                     return new SummarizedProductDto(product, safetyScore);
