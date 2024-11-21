@@ -157,7 +157,7 @@ public class ProductService {
                     BigDecimal y = safetyScore.multiply(new BigDecimal(slope)).add(new BigDecimal(yIntercept));
 
                     BigDecimal threshold = stepDownProductYields.get(productId);
-                    return threshold != null && y.compareTo(threshold) >= 0;
+                    return threshold != null && threshold.compareTo(y) >= 0;
                 })
                 .map(product -> {
                     BigDecimal safetyScore = productSafetyScoreMap.get(product.getId());
